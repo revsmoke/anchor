@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anchor</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/css/app.css">
+    <script type="module" src="/js/app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">DBT daily structure companion</p>
+        <h1>Anchor</h1>
+        <p class="boundary">Anchor supports DBT practice. It is not therapy or emergency care. If you are in immediate danger, call 911 or 988 in the U.S.</p>
+      </header>
+
+      <section class="snapshot-card" aria-labelledby="snapshot-heading">
+        <div>
+          <p class="section-label">Today snapshot</p>
+          <h2 id="snapshot-heading">Morning structure</h2>
+        </div>
+
+        <div id="snapshot-status" class="status">Loading today...</div>
+
+        <dl class="snapshot-data" id="snapshot-data" hidden>
+          <div>
+            <dt>Product</dt>
+            <dd data-testid="snapshot-product"></dd>
+          </div>
+          <div>
+            <dt>Date</dt>
+            <dd data-testid="snapshot-date"></dd>
+          </div>
+          <div>
+            <dt>Anchor</dt>
+            <dd data-testid="snapshot-summary"></dd>
+          </div>
+        </dl>
+
+        <div id="snapshot-error" class="error" role="alert" hidden></div>
+      </section>
+
+      <section class="consent-card" aria-labelledby="consent-heading">
+        <div>
+          <p class="section-label">Safety and consent</p>
+          <h2 id="consent-heading">Before you begin</h2>
+          <p class="boundary">Anchor supports DBT practice. It is not therapy or emergency care. If you are in immediate danger, use emergency support now.</p>
+        </div>
+
+        <div class="crisis-actions" aria-label="Crisis resources">
+          <a href="tel:911">Call 911</a>
+          <a href="sms:988">Call or text 988</a>
+        </div>
+
+        <form id="consent-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Email
+              <input id="email" name="email" type="email" autocomplete="email" required>
+            </label>
+            <label>
+              Password
+              <input id="password" name="password" type="password" autocomplete="new-password" minlength="12" required>
+            </label>
+          </div>
+
+          <label class="checkbox-row">
+            <input id="consent-crisis" type="checkbox" value="crisis_limits">
+            I understand Anchor is not emergency care.
+          </label>
+          <label class="checkbox-row">
+            <input id="consent-privacy" type="checkbox" value="privacy_choices">
+            I understand privacy choices and data retention settings.
+          </label>
+          <label class="checkbox-row">
+            <input id="consent-voice" type="checkbox" value="voice_audio">
+            I understand voice audio and transcript choices.
+          </label>
+
+          <button type="submit">Create account and save consent</button>
+          <div id="consent-error" class="error" role="alert" hidden></div>
+          <div id="consent-status" class="success" role="status" hidden></div>
+        </form>
+      </section>
+
+      <section class="onboarding-card" id="onboarding-section" aria-labelledby="onboarding-heading" hidden>
+        <div>
+          <p class="section-label">Routine setup</p>
+          <h2 id="onboarding-heading">Build your starting rhythm</h2>
+          <p class="boundary">Create the three anchors Anchor will use to structure the day.</p>
+        </div>
+
+        <form id="onboarding-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Wake time
+              <input id="wake-time" name="wakeTime" type="time">
+            </label>
+            <label>
+              Sleep time
+              <input id="sleep-time" name="sleepTime" type="time">
+            </label>
+            <label>
+              Therapy status
+              <select id="therapy-status" name="therapyStatus">
+                <option value="">Choose status</option>
+                <option value="in_therapy">In therapy now</option>
+                <option value="self_directed">Self-directed</option>
+                <option value="not_sure">Not sure</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Top goals
+            <input id="top-goals" name="goals" type="text" placeholder="stability, routine">
+          </label>
+          <label>
+            Hardest moments
+            <input id="struggles" name="struggles" type="text" placeholder="mornings, avoidance">
+          </label>
+
+          <div class="field-grid">
+            <label>
+              Morning anchor time
+              <input id="morning-time" name="morningTime" type="time" value="07:30">
+            </label>
+            <label>
+              Midday anchor time
+              <input id="midday-time" name="middayTime" type="time" value="12:30">
+            </label>
+            <label>
+              Evening anchor time
+              <input id="evening-time" name="eveningTime" type="time" value="21:00">
+            </label>
+          </div>
+
+          <button type="submit">Create my day</button>
+          <div id="onboarding-error" class="error" role="alert" hidden></div>
+          <div id="onboarding-status" class="success" role="status" hidden></div>
+
+          <div id="routine-result" class="routine-result" hidden>
+            <h3>Today's anchors</h3>
+            <ul data-testid="anchor-list"></ul>
+            <p id="next-best-step"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="check-in-card" id="check-in-section" aria-labelledby="check-in-heading" hidden>
+        <div>
+          <p class="section-label">Morning anchor</p>
+          <h2 id="check-in-heading">Morning quick check-in</h2>
+          <p class="boundary">Log the required DBT state fields, then complete the first anchor.</p>
+        </div>
+
+        <form id="check-in-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Mood
+              <select id="mood-score" name="primaryEmotionScore">
+                <option value="">Choose</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Primary urge
+              <select id="urge-score" name="primaryUrgeScore">
+                <option value="">Choose</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Energy
+              <select id="energy-state" name="energyState">
+                <option value="">Choose</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Next action status
+              <select id="next-action-status" name="suggestedNextActionStatus">
+                <option value="accepted">Accepted</option>
+                <option value="dismissed">Dismissed</option>
+                <option value="deferred">Deferred</option>
+              </select>
+            </label>
+            <label>
+              Location
+              <select id="location-context" name="locationContext">
+                <option value="">Skip</option>
+                <option value="home">Home</option>
+                <option value="work">Work</option>
+                <option value="school">School</option>
+                <option value="commute">Commute</option>
+                <option value="social">Social</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+              Check-in note
+            <input id="check-in-note" name="note" type="text" maxlength="180" placeholder="One sentence">
+          </label>
+
+          <button type="submit">Save check-in and complete morning anchor</button>
+          <div id="check-in-error" class="error" role="alert" hidden></div>
+          <div id="check-in-status" class="success" role="status" hidden></div>
+
+          <div id="check-in-result" class="routine-result" hidden>
+            <h3>Anchor result</h3>
+            <p id="suggested-action"></p>
+            <p id="completion-next-step"></p>
+          </div>
+
+          <section id="safety-mode" class="safety-mode" aria-labelledby="safety-mode-heading" hidden>
+            <h3 id="safety-mode-heading">Safety Mode</h3>
+            <p id="safety-mode-message"></p>
+            <div class="crisis-actions" aria-label="Safety Mode crisis resources">
+              <a href="tel:911">Call 911</a>
+              <a href="sms:988">Call or text 988</a>
+            </div>
+          </section>
+        </form>
+      </section>
+
+      <section class="reset-card" id="reset-section" aria-labelledby="reset-heading" hidden>
+        <div>
+          <p class="section-label">Planner / Day Reset</p>
+          <h2 id="reset-heading">Reset Today</h2>
+          <p class="boundary">Missing an anchor is information, not failure. Reduce the day to what is still workable.</p>
+        </div>
+
+        <form id="reset-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Must-do
+              <input id="must-dos" name="mustDos" type="text" placeholder="therapy">
+            </label>
+            <label>
+              Deferred items
+              <input id="defer-items" name="defer" type="text" placeholder="errands, long messages">
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Regulation action
+              <input id="regulation-action" name="regulationAction" type="text" placeholder="10-min walk">
+            </label>
+            <label>
+              Reset mode
+              <select id="reset-mode" name="mode">
+                <option value="full_day">Full day</option>
+                <option value="minimum_viable_day">Minimum viable day</option>
+              </select>
+            </label>
+          </div>
+
+          <button type="submit">Apply Reset</button>
+          <div id="reset-error" class="error" role="alert" hidden></div>
+          <div id="reset-status" class="success" role="status" hidden></div>
+
+          <div id="reset-result" class="routine-result" hidden>
+            <h3>Updated Today</h3>
+            <p id="reset-next-step"></p>
+            <p id="reset-deferred"></p>
+            <ul data-testid="reset-anchor-list"></ul>
+          </div>
+        </form>
+      </section>
+
+      <section class="diary-card" id="diary-section" aria-labelledby="diary-heading" hidden>
+        <div>
+          <p class="section-label">Evening review</p>
+          <h2 id="diary-heading">Full Diary Card</h2>
+          <p class="boundary">Close the day with stable DBT fields that can later support review and export.</p>
+        </div>
+
+        <form id="diary-form" class="consent-form" novalidate>
+          <input type="hidden" name="entryDate" id="diary-date">
+
+          <fieldset>
+            <legend>Anchor completion</legend>
+            <div class="field-grid">
+              <label>
+                Morning completion
+                <select name="morningCompletion">
+                  <option value="complete">Complete</option>
+                  <option value="missed">Missed</option>
+                  <option value="skipped">Skipped</option>
+                </select>
+              </label>
+              <label>
+                Midday completion
+                <select name="middayCompletion">
+                  <option value="complete">Complete</option>
+                  <option value="missed">Missed</option>
+                  <option value="skipped">Skipped</option>
+                </select>
+              </label>
+              <label>
+                Evening completion
+                <select name="eveningCompletion">
+                  <option value="complete">Complete</option>
+                  <option value="missed">Missed</option>
+                  <option value="skipped">Skipped</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Emotions</legend>
+            <div class="field-grid">
+              <label>Anxiety/fear<select name="anxietyFear"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Sadness<select name="sadness"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Anger<select name="anger"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Shame<select name="shame"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Guilt<select name="guilt"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Numbness<select name="numbness"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Joy/calm<select name="joyCalm"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Urges</legend>
+            <div class="field-grid">
+              <label>Self-harm urge<select name="selfHarm"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Suicidality urge<select name="suicidality"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Substance use urge<select name="substanceUse"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Binge/restrict/purge urge<select name="bingeRestrictPurge"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Isolate/avoid urge<select name="isolateAvoid"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Quit/give-up urge<select name="quitGiveUp"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+              <label>Lash out urge<select name="lashOut"><option value="">Choose</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+            </div>
+          </fieldset>
+
+          <div class="field-grid">
+            <label>
+              Target occurrence
+              <select name="targetOccurrence">
+                <option value="none">None</option>
+                <option value="urge_only">Urge only</option>
+                <option value="action_occurred">Action occurred</option>
+              </select>
+            </label>
+            <label>
+              Overall day difficulty
+              <select name="overallDayDifficulty">
+                <option value="">Choose</option>
+                <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              </select>
+            </label>
+            <label>
+              Skills used
+              <input name="skillsUsed" type="text" placeholder="stop, paced_breathing">
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Sleep minutes
+              <input name="sleepDurationMinutes" type="number" min="0" step="1">
+            </label>
+            <label>
+              Sleep quality
+              <select name="sleepQuality">
+                <option value="">Skip</option>
+                <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              </select>
+            </label>
+            <label>
+              Medication adherence
+              <select name="medicationAdherence">
+                <option value="">Skip</option>
+                <option value="taken">Taken</option>
+                <option value="missed">Missed</option>
+                <option value="not_applicable">Not applicable</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Diary notes
+            <textarea name="notes" rows="3" maxlength="500"></textarea>
+          </label>
+
+          <button type="submit">Complete Diary Card</button>
+          <div id="diary-error" class="error" role="alert" hidden></div>
+          <div id="diary-status" class="success" role="status" hidden></div>
+
+          <div id="diary-result" class="routine-result" hidden>
+            <h3>Diary result</h3>
+            <p id="diary-next-step"></p>
+            <p id="diary-top-target"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="skills-card" id="skills-section" aria-labelledby="skills-heading" hidden>
+        <div>
+          <p class="section-label">Skills practice</p>
+          <h2 id="skills-heading">Skills Library</h2>
+          <p class="boundary">Choose a short DBT skill and complete one guided exercise.</p>
+        </div>
+
+        <div class="skill-tools">
+          <div class="module-tabs" aria-label="Skill modules">
+            <button type="button" data-module-filter="">All Skills</button>
+            <button type="button" data-module-filter="distress_tolerance">Distress Tolerance</button>
+            <button type="button" data-module-filter="emotion_regulation">Emotion Regulation</button>
+          </div>
+
+          <label>
+            Search skills
+            <input id="skill-search" type="search" placeholder="breath, urge, avoidance">
+          </label>
+        </div>
+
+        <div id="skills-error" class="error" role="alert" hidden></div>
+        <div id="skills-status" class="status">Loading skills...</div>
+        <p id="skills-recent" class="skill-recent" hidden></p>
+        <div id="skills-list" class="skill-list" aria-live="polite"></div>
+
+        <section id="skill-detail" class="skill-detail" aria-labelledby="skill-detail-heading" hidden>
+          <div>
+            <p class="section-label">Guided exercise</p>
+            <h3 id="skill-detail-heading"></h3>
+            <p id="skill-when"></p>
+            <p id="skill-why"></p>
+            <p id="skill-duration"></p>
+          </div>
+
+          <ol id="skill-steps"></ol>
+
+          <div class="exercise-actions">
+            <button type="button" id="skill-start">Start Exercise</button>
+            <p id="skill-timer" class="status" aria-live="polite"></p>
+          </div>
+
+          <form id="skill-session-form" class="consent-form" novalidate>
+            <label>
+              Helpfulness rating
+              <select id="skill-helpfulness" name="helpfulnessRating">
+                <option value="">Choose</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <button type="submit">Complete Exercise</button>
+            <div id="skill-session-error" class="error" role="alert" hidden></div>
+            <div id="skill-session-status" class="success" role="status" hidden></div>
+            <p id="skill-follow-up" class="skill-follow-up"></p>
+          </form>
+        </section>
+      </section>
+
+      <section class="coach-card" id="coach-section" aria-labelledby="coach-heading" hidden>
+        <div>
+          <p class="section-label">Text support</p>
+          <h2 id="coach-heading">Text Coach</h2>
+          <p class="boundary">Ask for one structured next step. Safety signals interrupt normal coaching.</p>
+        </div>
+
+        <form id="coach-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Coach mode
+              <select id="coach-mode" name="mode">
+                <option value="reset">Reset</option>
+                <option value="skill">Skill</option>
+                <option value="planning">Planning</option>
+                <option value="freeform">Freeform</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Coach message
+            <textarea id="coach-message" name="message" rows="3" maxlength="1000"></textarea>
+          </label>
+
+          <button type="submit" id="coach-send">Send coach message</button>
+          <div id="coach-error" class="error" role="alert" hidden></div>
+          <div id="coach-status" class="status" role="status" hidden></div>
+        </form>
+
+        <div id="coach-thread" class="coach-thread" aria-live="polite" hidden>
+          <p id="coach-reply"></p>
+          <p id="coach-next-action"></p>
+          <p id="coach-specialist"></p>
+        </div>
+
+        <section id="coach-safety-mode" class="safety-mode" aria-labelledby="coach-safety-heading" hidden>
+          <h3 id="coach-safety-heading">Coach Safety Mode</h3>
+          <h4 id="coach-safety-title"></h4>
+          <p id="coach-safety-message"></p>
+          <p id="coach-grounding-skill"></p>
+          <div class="crisis-actions" aria-label="Coach Safety Mode crisis resources">
+            <a href="tel:911">Call 911</a>
+            <a href="sms:988">Call or text 988</a>
+          </div>
+        </section>
+      </section>
+
+      <section class="chain-card" id="chain-section" aria-labelledby="chain-heading" hidden>
+        <div>
+          <p class="section-label">Behavior chain</p>
+          <h2 id="chain-heading">Chain Analysis</h2>
+          <p class="boundary">Map one prompting event into vulnerabilities, links, consequences, and alternatives.</p>
+        </div>
+
+        <form id="chain-form" class="consent-form" novalidate>
+          <label>
+            Prompting event
+            <input id="chain-prompting-event" name="promptingEvent" type="text" maxlength="280">
+          </label>
+          <button type="submit">Create Chain Analysis</button>
+          <div id="chain-error" class="error" role="alert" hidden></div>
+          <div id="chain-status" class="success" role="status" hidden></div>
+        </form>
+
+        <form id="chain-complete-form" class="consent-form" novalidate hidden>
+          <div class="field-grid">
+            <label>
+              Vulnerabilities
+              <input name="vulnerabilities" type="text">
+            </label>
+            <label>
+              Links
+              <input name="links" type="text">
+            </label>
+            <label>
+              Consequences
+              <input name="consequences" type="text">
+            </label>
+            <label>
+              Alternatives
+              <input name="alternatives" type="text">
+            </label>
+          </div>
+          <button type="submit">Complete Chain Analysis</button>
+          <div id="chain-complete-error" class="error" role="alert" hidden></div>
+          <div id="chain-complete-status" class="success" role="status" hidden></div>
+          <p id="chain-prevention-plan" class="section-result" hidden></p>
+        </form>
+      </section>
+
+      <section class="voice-card" id="voice-section" aria-labelledby="voice-heading" hidden>
+        <div>
+          <p class="section-label">Voice support</p>
+          <h2 id="voice-heading">Live Voice Coach</h2>
+          <p class="boundary">Start a deterministic local voice session stub with transcript preview and explicit save choices.</p>
+        </div>
+
+        <form id="voice-form" class="consent-form" novalidate>
+          <label class="checkbox-row">
+            <input id="voice-do-not-save" name="doNotSave" type="checkbox">
+            Do not save this voice session
+          </label>
+          <button type="submit">Start Voice Session</button>
+          <div id="voice-error" class="error" role="alert" hidden></div>
+          <div id="voice-status" class="success" role="status" hidden></div>
+          <p id="voice-preview" class="section-result" hidden></p>
+        </form>
+
+        <button type="button" id="voice-end" hidden>End Voice Session</button>
+        <div id="voice-end-status" class="success" role="status" hidden></div>
+      </section>
+
+      <section class="insights-card" id="insights-section" aria-labelledby="insights-heading" hidden>
+        <div>
+          <p class="section-label">Review</p>
+          <h2 id="insights-heading">Insights and Weekly Review</h2>
+          <p class="boundary">Render evidence-linked summaries without replacing clinical judgment.</p>
+        </div>
+        <button type="button" id="insights-load">Load Insights</button>
+        <div id="insights-error" class="error" role="alert" hidden></div>
+        <div id="insights-result" class="routine-result" hidden>
+          <p id="insights-score"></p>
+          <p id="insights-card-title"></p>
+          <p id="weekly-recommendation"></p>
+        </div>
+      </section>
+
+      <section class="packet-card" id="packet-section" aria-labelledby="packet-heading" hidden>
+        <div>
+          <p class="section-label">Therapy prep</p>
+          <h2 id="packet-heading">Session Prep Export</h2>
+          <p class="boundary">Generate a local packet with selected sections and explicit redactions.</p>
+        </div>
+
+        <form id="packet-form" class="consent-form" novalidate>
+          <label class="checkbox-row"><input name="includeDiary" type="checkbox">Include diary</label>
+          <label class="checkbox-row"><input name="includeSkills" type="checkbox">Include skills</label>
+          <label class="checkbox-row"><input name="includeChains" type="checkbox">Include chain analyses</label>
+          <label class="checkbox-row"><input name="redactNotes" type="checkbox">Redact notes</label>
+          <button type="submit">Generate Packet</button>
+          <div id="packet-error" class="error" role="alert" hidden></div>
+          <div id="packet-status" class="success" role="status" hidden></div>
+          <a id="packet-download" href="#" hidden>Download packet</a>
+        </form>
+      </section>
+
+      <section class="privacy-card" id="privacy-section" aria-labelledby="privacy-heading" hidden>
+        <div>
+          <p class="section-label">Privacy</p>
+          <h2 id="privacy-heading">Privacy and Data Controls</h2>
+          <p class="boundary">Control transcript retention, trace retention, exports, and account deletion requests.</p>
+        </div>
+
+        <form id="privacy-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Transcript retention
+              <select name="transcriptRetentionDays">
+                <option value="0">Do not retain</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+              </select>
+            </label>
+            <label>
+              Trace retention
+              <select name="traceRetentionDays">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="365">365 days</option>
+              </select>
+            </label>
+          </div>
+          <button type="submit">Save Privacy Settings</button>
+          <div id="privacy-error" class="error" role="alert" hidden></div>
+          <div id="privacy-status" class="success" role="status" hidden></div>
+        </form>
+
+        <button type="button" id="privacy-export">Export Data</button>
+        <div id="export-status" class="success" role="status" hidden></div>
+
+        <form id="delete-form" class="consent-form" novalidate>
+          <label>
+            Delete confirmation
+            <input name="confirmation" type="text">
+          </label>
+          <button type="submit">Request Delete</button>
+          <div id="delete-error" class="error" role="alert" hidden></div>
+          <div id="delete-status" class="success" role="status" hidden></div>
+        </form>
+        <button type="button" id="delete-execute" hidden>Execute Delete</button>
+      </section>
+
+      <section class="offline-card" id="offline-section" aria-labelledby="offline-heading" hidden>
+        <div>
+          <p class="section-label">Device resilience</p>
+          <h2 id="offline-heading">Notifications and Offline Capture</h2>
+          <p class="boundary">Save quiet-hours preferences and sync queued local mutations idempotently.</p>
+        </div>
+
+        <form id="notification-form" class="consent-form" novalidate>
+          <label class="checkbox-row"><input name="notificationOptIn" type="checkbox">Notification opt-in</label>
+          <div class="field-grid">
+            <label>
+              Quiet hours start
+              <input name="quietHoursStart" type="time" value="22:00">
+            </label>
+            <label>
+              Quiet hours end
+              <input name="quietHoursEnd" type="time" value="07:00">
+            </label>
+          </div>
+          <button type="submit">Save Notification Settings</button>
+          <div id="notification-error" class="error" role="alert" hidden></div>
+          <div id="notification-status" class="success" role="status" hidden></div>
+        </form>
+
+        <form id="offline-form" class="consent-form" novalidate>
+          <label>
+            Client mutation id
+            <input name="clientMutationId" type="text">
+          </label>
+          <button type="submit">Sync Offline Queue</button>
+          <div id="offline-error" class="error" role="alert" hidden></div>
+          <div id="offline-status" class="success" role="status" hidden></div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,341 @@
+{
+  "projectName": "Anchor Production Hardening",
+  "passes": [
+    {
+      "name": "Security and Production Config",
+      "note": "Production env validation, secure cookies, CSRF, request ids, and redacted audit metadata."
+    },
+    {
+      "name": "Real Voice Session Setup",
+      "note": "Server-mediated WebRTC setup through backend-owned Realtime call flow."
+    },
+    {
+      "name": "Real Export Artifacts",
+      "note": "Authenticated JSON export artifacts for session prep and privacy export."
+    },
+    {
+      "name": "Privacy Deletion Execution",
+      "note": "Executable privacy delete requests with artifact revocation and completion audit."
+    },
+    {
+      "name": "PWA Install and Offline Capture",
+      "note": "Manifest, service worker, app-shell cache, and local offline queue retry."
+    },
+    {
+      "name": "Observability, Audit, and Release Checks",
+      "note": "Audit events and private-beta readiness checks."
+    }
+  ],
+  "layers": [
+    {
+      "icon": "UI",
+      "name": "Frontend",
+      "tech": "HTML5 / CSS / Vanilla JS"
+    },
+    {
+      "icon": "JS",
+      "name": "Client Logic",
+      "tech": "Browser modules / Service Worker"
+    },
+    {
+      "icon": "API",
+      "name": "Bun API",
+      "tech": "Bun.serve JSON routes"
+    },
+    {
+      "icon": "DB",
+      "name": "PostgreSQL",
+      "tech": "Migrations / parameterized SQL"
+    },
+    {
+      "icon": "AI",
+      "name": "Agents and Safety",
+      "tech": "OpenAI Realtime boundary / audit guardrails"
+    },
+    {
+      "icon": "QA",
+      "name": "Tests and Verification",
+      "tech": "bun test / Playwright / readiness check"
+    }
+  ],
+  "tasks": [
+    [
+      {
+        "description": "Expose CSRF, secure cookie, and private-beta security states without disrupting existing flows.",
+        "subtasks": [
+          "Verify production cookie and CSRF behavior."
+        ]
+      },
+      {
+        "description": "Show voice setup as server-mediated while preserving transcript preview and end controls.",
+        "subtasks": [
+          "No API key or raw audio reaches the browser."
+        ]
+      },
+      {
+        "description": "Render authenticated JSON download links after packet/export generation.",
+        "subtasks": [
+          "Redactions remain visible before download."
+        ]
+      },
+      {
+        "description": "Add executable delete control after confirmed delete request.",
+        "subtasks": [
+          "Deletion completion is visible."
+        ]
+      },
+      {
+        "description": "Register PWA manifest/service worker and render offline queue retry result.",
+        "subtasks": [
+          "Help Now remains available offline through app shell."
+        ]
+      },
+      {
+        "description": "Keep hardening status browser-visible and console-clean.",
+        "subtasks": [
+          "Manual smoke confirms no console issues."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Fetch CSRF token after signup and send it on mutating JSON requests.",
+        "subtasks": [
+          "Local mode remains compatible."
+        ]
+      },
+      {
+        "description": "Create browser SDP offer payload and handle SDP answer metadata.",
+        "subtasks": [
+          "Use deterministic offer fallback for tests."
+        ]
+      },
+      {
+        "description": "Download links now point to authenticated export endpoints.",
+        "subtasks": [
+          "No therapist share link in this phase."
+        ]
+      },
+      {
+        "description": "Execute delete request from client with explicit confirmation.",
+        "subtasks": [
+          "Render completed state."
+        ]
+      },
+      {
+        "description": "Persist failed offline mutations in localStorage and retry through sync route.",
+        "subtasks": [
+          "Stable client mutation ids are reused."
+        ]
+      },
+      {
+        "description": "Register service worker progressively and keep failures non-fatal.",
+        "subtasks": [
+          "Sensitive API responses are never cached."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Validate production config and emit request-id headers on API responses.",
+        "subtasks": [
+          "CSRF enforced for production cookie-auth mutations."
+        ]
+      },
+      {
+        "description": "Proxy Realtime call setup and hangup through Bun-owned service boundary.",
+        "subtasks": [
+          "OpenAI key is backend-only."
+        ]
+      },
+      {
+        "description": "Create and serve authenticated JSON export artifacts.",
+        "subtasks": [
+          "Artifact endpoint requires active session."
+        ]
+      },
+      {
+        "description": "Add delete execution endpoint.",
+        "subtasks": [
+          "Missing delete requests return safe 404."
+        ]
+      },
+      {
+        "description": "Keep offline sync idempotent and audit sync outcomes.",
+        "subtasks": [
+          "Return accepted/rejected/needsReview arrays."
+        ]
+      },
+      {
+        "description": "Add private-beta readiness runner.",
+        "subtasks": [
+          "Checks config, db health, and required tables."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "No new security tables required beyond CSRF cookie strategy.",
+        "subtasks": [
+          "Existing session schema remains."
+        ]
+      },
+      {
+        "description": "Persist OpenAI call id on voice sessions.",
+        "subtasks": [
+          "Do not persist raw audio."
+        ]
+      },
+      {
+        "description": "Create export artifact metadata table and packet artifact link.",
+        "subtasks": [
+          "Artifacts expire after 30 days by default."
+        ]
+      },
+      {
+        "description": "Track delete completion timestamp and remove user-owned product data.",
+        "subtasks": [
+          "Keep minimal delete request audit state."
+        ]
+      },
+      {
+        "description": "Reuse offline mutation table for retry/idempotency.",
+        "subtasks": [
+          "No sensitive API caching."
+        ]
+      },
+      {
+        "description": "Create audit events table.",
+        "subtasks": [
+          "Metadata is redacted before storage."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Redact sensitive metadata before audit persistence.",
+        "subtasks": [
+          "Free-text safety/diary fields are not stored in audit metadata."
+        ]
+      },
+      {
+        "description": "Configure Realtime session instructions for short DBT practice support.",
+        "subtasks": [
+          "No crisis therapy simulation."
+        ]
+      },
+      {
+        "description": "Generate exports from stable fields plus selected chain summaries.",
+        "subtasks": [
+          "Respect redaction before artifact write."
+        ]
+      },
+      {
+        "description": "Audit privacy delete request and completion.",
+        "subtasks": [
+          "Artifacts are revoked/deleted before data cleanup."
+        ]
+      },
+      {
+        "description": "Keep crisis resources available through cached app shell.",
+        "subtasks": [
+          "Sync failures never block Help Now."
+        ]
+      },
+      {
+        "description": "Audit export, delete, voice, and offline hardening events.",
+        "subtasks": [
+          "Readiness check gates private beta."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Add RED/GREEN API tests for config, cookies, CSRF, and request ids.",
+        "subtasks": [
+          "Run bun test."
+        ]
+      },
+      {
+        "description": "Add RED/GREEN API and browser tests for server-mediated voice setup/end.",
+        "subtasks": [
+          "Mock Realtime in tests."
+        ]
+      },
+      {
+        "description": "Add RED/GREEN export artifact tests.",
+        "subtasks": [
+          "Verify redacted notes absent."
+        ]
+      },
+      {
+        "description": "Add RED/GREEN deletion execution tests.",
+        "subtasks": [
+          "Verify completion and audit event."
+        ]
+      },
+      {
+        "description": "Add RED/GREEN PWA/offline retry tests.",
+        "subtasks": [
+          "Verify service worker registration."
+        ]
+      },
+      {
+        "description": "Run db reset, unit/API, browser, readiness, and manual smoke.",
+        "subtasks": [
+          "Update ledger/history/NotebookLM."
+        ]
+      }
+    ]
+  ],
+  "statuses": [
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ]
+  ]
+}

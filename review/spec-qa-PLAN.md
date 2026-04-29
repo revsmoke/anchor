@@ -1,0 +1,6 @@
+- [x] Confirm repository context and relevant review inputs exist.
+- [x] Read SPEC.md, PRD.md, vertical-slice-dashboard.html, and vertical-slice development guidance.
+- [x] Assess SPEC.md against PRD coverage, dashboard JSON contract, requested stack, privacy/safety requirements, vertical-slice methodology, and implementability.
+- [x] Write concise QA report to review/spec-qa.md with severity-ranked findings, missing requirements, suggested edits, and pass/fail recommendation.
+- [x] Re-read the report for consistency and scope compliance.
+- [x] Update this delegated plan as steps complete.

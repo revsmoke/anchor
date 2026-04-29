@@ -1,0 +1,709 @@
+{
+  "projectName": "Anchor",
+  "passes": [
+    {
+      "name": "Walking Skeleton",
+      "note": "Seeded Today snapshot renders from PostgreSQL through Bun API into HTML/CSS/vanilla JS."
+    },
+    {
+      "name": "Safety and Consent Shell",
+      "note": "User sees app boundaries, crisis guidance, and saves required consent records."
+    },
+    {
+      "name": "Onboarding and Routine Setup",
+      "note": "User creates profile rhythm and three default daily anchors."
+    },
+    {
+      "name": "Morning Anchor and Quick Check-In",
+      "note": "User completes first anchor and records a fast DBT check-in."
+    },
+    {
+      "name": "Day Reset and Minimum Viable Day",
+      "note": "User recovers a disrupted day with one must-do, one regulation action, and deferrals."
+    },
+    {
+      "name": "Evening Diary Card",
+      "note": "User completes stable DBT diary-card closeout."
+    },
+    {
+      "name": "Skills Library and Guided Exercise",
+      "note": "User browses DBT skills and completes a guided exercise."
+    },
+    {
+      "name": "Text Coach with Safety Gate",
+      "note": "User gets structured text coaching with Safety Guardian interruption when needed."
+    },
+    {
+      "name": "Chain Analysis",
+      "note": "User creates and resumes a structured chain analysis."
+    },
+    {
+      "name": "Live Voice Coach",
+      "note": "User starts a realtime voice session with captions/transcript preview and safe exit."
+    },
+    {
+      "name": "Insights and Weekly Review",
+      "note": "User sees patterns, structure score, and weekly recommendations."
+    },
+    {
+      "name": "Session Prep Export",
+      "note": "User generates a clinician-ready packet from stable fields and selected chain analyses."
+    },
+    {
+      "name": "Privacy, Retention, and Data Controls",
+      "note": "User manages export, deletion, transcript retention, sharing consent, and app lock settings."
+    },
+    {
+      "name": "Notifications, Offline Capture, and PWA Hardening",
+      "note": "App installs, captures offline entries, syncs safely, and handles reminders."
+    }
+  ],
+  "layers": [
+    {
+      "icon": "UI",
+      "name": "Frontend",
+      "tech": "HTML5 / CSS"
+    },
+    {
+      "icon": "JS",
+      "name": "Client JavaScript",
+      "tech": "Vanilla JS / fetch / Web APIs"
+    },
+    {
+      "icon": "API",
+      "name": "Bun API",
+      "tech": "Bun.serve / JavaScript routes"
+    },
+    {
+      "icon": "DB",
+      "name": "PostgreSQL",
+      "tech": "SQL migrations / seed data"
+    },
+    {
+      "icon": "AI",
+      "name": "Agents and Safety",
+      "tech": "OpenAI Agents / guardrails / traces"
+    },
+    {
+      "icon": "QA",
+      "name": "Tests and Browser QA",
+      "tech": "bun test / playwright-cli / accessibility"
+    }
+  ],
+  "tasks": [
+    [
+      {
+        "description": "Create `public/index.html` with valid HTML5 shell, minimal Anchor branding, `#today-snapshot`, and visible error area.",
+        "subtasks": [
+          "Open in browser and confirm the shell renders before API data loads."
+        ]
+      },
+      {
+        "description": "Add Safety and Consent screen with boundaries, 988/911 guidance, crisis limits, privacy/audio consent checkboxes, and continue CTA.",
+        "subtasks": [
+          "Ensure Help Now remains visible and boundary copy is not hidden behind interaction."
+        ]
+      },
+      {
+        "description": "Add Intake and Routine Setup screens for timezone, wake/sleep range, goals, struggles, therapy status, and three anchors.",
+        "subtasks": [
+          "Render first-use, returning, validation-error, and low-stimulation states."
+        ]
+      },
+      {
+        "description": "Add Morning Anchor card and Quick Check-In form with emotion, urge, energy, optional note, and suggested next action.",
+        "subtasks": [
+          "Keep the happy path completable in under 30 seconds."
+        ]
+      },
+      {
+        "description": "Add Planner / Day Reset view with must-do, reduce/defer list, regulation action, and minimum viable day toggle.",
+        "subtasks": [
+          "Use non-shaming copy for missed-anchor state."
+        ]
+      },
+      {
+        "description": "Add Full Diary Card UI for stable emotion, urge, behavior, skill, difficulty, sleep, meds, and note fields.",
+        "subtasks": [
+          "Make required core fields visible even when optional fields are hidden."
+        ]
+      },
+      {
+        "description": "Add Skills Library and Skill Exercise screens with module tabs, search, favorites, recent, timer, and follow-up prompt.",
+        "subtasks": [
+          "Render empty, loading, recommended, and low-stimulation states."
+        ]
+      },
+      {
+        "description": "Add Coach screen with mode chips, specialist indicator, message thread, prompt chips, safety-interruption surface, and Send control.",
+        "subtasks": [
+          "Safety Mode must override normal coach UI without hiding crisis actions."
+        ]
+      },
+      {
+        "description": "Add Chain Analysis form with prompting event, vulnerabilities, links, consequences, alternatives, and prevention plan sections.",
+        "subtasks": [
+          "Make drafts visibly resumable and structured, not open-ended journaling."
+        ]
+      },
+      {
+        "description": "Add Live Voice Session screen with waveform/listening state, captions or transcript preview, active goal, mute, reconnecting, end, and safety exit.",
+        "subtasks": [
+          "Verify transcript preview can be visible without persisting transcript by default."
+        ]
+      },
+      {
+        "description": "Add Insights and Weekly Review screens with structure score, trend cards, top targets, wins, misses, and recommended adjustments.",
+        "subtasks": [
+          "Show hierarchy ordering in target display."
+        ]
+      },
+      {
+        "description": "Add Session Prep / Share screen with packet preview, included sections, redaction toggles, PDF/export CTA, and share status states.",
+        "subtasks": [
+          "Make redactions obvious before export/share."
+        ]
+      },
+      {
+        "description": "Add Privacy and Settings screens for export/delete, transcript retention, sharing consent, audio consent, passcode/app lock, and therapist sharing.",
+        "subtasks": [
+          "Require confirmation for destructive privacy actions."
+        ]
+      },
+      {
+        "description": "Add install/offline UI states, notification permission surfaces, quiet-hours settings, sync status, and queued-change indicators.",
+        "subtasks": [
+          "Verify primary actions still fit mobile viewport."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Implement `loadTodaySnapshot()` with `fetch()`, success render, failure render, request timeout handling, and no framework dependency.",
+        "subtasks": [
+          "Force a bad URL and confirm the error area renders."
+        ]
+      },
+      {
+        "description": "Implement consent form handlers, checkbox validation, POST to consent route, inline validation errors, and navigation to onboarding.",
+        "subtasks": [
+          "Prevent progression until required consent choices are saved."
+        ]
+      },
+      {
+        "description": "Implement onboarding state, routine setup submission, client-side validation, and render of created anchors returned by API.",
+        "subtasks": [
+          "Timezone and anchor times must round-trip without local parsing drift."
+        ]
+      },
+      {
+        "description": "Implement quick check-in submission, anchor completion call, optimistic disabled state, result render, and safety-mode response handling.",
+        "subtasks": [
+          "Render accepted, dismissed, and deferred next-action statuses."
+        ]
+      },
+      {
+        "description": "Implement day-reset form state, minimum viable day toggle, POST to reset route, and rerender of Today plan.",
+        "subtasks": [
+          "Show graceful rollback if reset save fails."
+        ]
+      },
+      {
+        "description": "Implement diary load/save, field validation, draft state, completion state, and render of next best step after save.",
+        "subtasks": [
+          "Validate 0-5 ranges before sending."
+        ]
+      },
+      {
+        "description": "Implement skills search/filter, skill detail loading, exercise timer, session completion POST, and helpfulness rating capture.",
+        "subtasks": [
+          "Search must work with already-loaded data before adding server filtering."
+        ]
+      },
+      {
+        "description": "Implement coach message send, disabled in-flight state, response rendering, specialist indicator, and Safety Mode branching.",
+        "subtasks": [
+          "Elevated/acute responses must not render as ordinary assistant replies."
+        ]
+      },
+      {
+        "description": "Implement chain-analysis draft creation, autosave/update calls, section completion tracking, and prevention-plan render.",
+        "subtasks": [
+          "Support resume after navigation away."
+        ]
+      },
+      {
+        "description": "Implement voice client-secret request, Realtime session setup, captions/transcript preview, mute/end controls, reconnect UI, and Do Not Save state.",
+        "subtasks": [
+          "The browser must receive only the Realtime client secret, never `OPENAI_API_KEY`."
+        ]
+      },
+      {
+        "description": "Implement insights fetch, weekly review load/create, chart-free trend rendering, and recommendation display from returned evidence.",
+        "subtasks": [
+          "Handle no-data and partial-week states."
+        ]
+      },
+      {
+        "description": "Implement session-packet generation request, redaction state, export/download link render, share success/failure handling, and access status.",
+        "subtasks": [
+          "Do not send hidden optional fields when redacted."
+        ]
+      },
+      {
+        "description": "Implement settings save, export/delete request flows, transcript retention toggle, passcode/app-lock UI state, and share revocation.",
+        "subtasks": [
+          "Export/delete requests require recent-auth or explicit confirmation state."
+        ]
+      },
+      {
+        "description": "Implement service worker registration, offline queue writes, sync retry, notification permission request, and quiet-hours client validation.",
+        "subtasks": [
+          "Queued mutations need stable client mutation ids."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Create `GET /api/health`, `GET /api/config/public`, and `GET /api/today/snapshot` with consistent JSON envelope and error handling.",
+        "subtasks": [
+          "Snapshot route must query PostgreSQL, not return hardcoded data."
+        ]
+      },
+      {
+        "description": "Create consent route and public crisis config route with validation, safe error responses, and consent precondition checks.",
+        "subtasks": [
+          "Consent records are append-only."
+        ]
+      },
+      {
+        "description": "Create onboarding profile and routine routes that validate body fields and return created profile, templates, and today's anchors.",
+        "subtasks": [
+          "Do not add calendar routes until calendar scope is approved."
+        ]
+      },
+      {
+        "description": "Create check-in and anchor-completion routes with safety gate, validation, and next-action response.",
+        "subtasks": [
+          "Elevated responses must include Safety Mode payload."
+        ]
+      },
+      {
+        "description": "Create day-reset route that validates mode and updates daily plan with reduced commitments and next best step.",
+        "subtasks": [
+          "Minimum viable day must not delete original history."
+        ]
+      },
+      {
+        "description": "Create diary GET/PUT routes using stable schema, custom-field validation, and safe free-text handling.",
+        "subtasks": [
+          "PUT must upsert by user and date."
+        ]
+      },
+      {
+        "description": "Create skills list/detail/session routes with module filtering and skill-session persistence.",
+        "subtasks": [
+          "Session completion returns follow-up prompt."
+        ]
+      },
+      {
+        "description": "Create coach message route that invokes orchestrator, Safety Guardian gate, trace logging, and response envelope.",
+        "subtasks": [
+          "Acute risk must bypass normal coach response."
+        ]
+      },
+      {
+        "description": "Create chain-analysis create/update routes with ownership checks, draft status, and completion payload.",
+        "subtasks": [
+          "Patch route must reject invalid section keys."
+        ]
+      },
+      {
+        "description": "Create voice client-secret and voice-session end routes with audio consent checks, retention flags, and Realtime config response.",
+        "subtasks": [
+          "Client-secret route must call OpenAI from server side only."
+        ]
+      },
+      {
+        "description": "Create insights and weekly-review routes that synthesize existing diary, anchor, skill, and chain-analysis data.",
+        "subtasks": [
+          "Responses include evidence refs for pattern cards."
+        ]
+      },
+      {
+        "description": "Create session-packet routes for generation, retrieval, redaction, export URL, share URL, and scoped share-token access.",
+        "subtasks": [
+          "Share access must be audited."
+        ]
+      },
+      {
+        "description": "Create settings, privacy export, delete-request, safety-plan, and support-contact routes with authorization and audit logging.",
+        "subtasks": [
+          "Deletion request must revoke share artifacts where applicable."
+        ]
+      },
+      {
+        "description": "Create offline sync and notification preference routes with idempotent mutation handling and quiet-hours validation.",
+        "subtasks": [
+          "Return accepted/rejected/needsReview arrays."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Create `app_status_snapshots` table, one seed row, and connection verification query.",
+        "subtasks": [
+          "No full user schema in Pass 0."
+        ]
+      },
+      {
+        "description": "Create `users`, `sessions`, `consent_records`, and initial `safety_plans` tables only as required by consent shell.",
+        "subtasks": [
+          "Store consent type, granted/revoked timestamps, and source."
+        ]
+      },
+      {
+        "description": "Create `user_profiles`, `routine_templates`, `routine_instances`, and `daily_plans` tables with timezone-safe timestamps.",
+        "subtasks": [
+          "Seed default morning/midday/evening templates."
+        ]
+      },
+      {
+        "description": "Create `quick_check_ins`, anchor completion fields, and next-action fields required for first anchor flow.",
+        "subtasks": [
+          "Include anchor context and suggested action status enums."
+        ]
+      },
+      {
+        "description": "Extend `daily_plans` for reduced mode, must-dos, deferred items, regulation action, and reset history.",
+        "subtasks": [
+          "Preserve prior plan state for audit/review."
+        ]
+      },
+      {
+        "description": "Create `diary_schemas`, `diary_entries`, `behavior_targets`, and seed default V1 target hierarchy mapping.",
+        "subtasks": [
+          "Stable export fields must be queryable."
+        ]
+      },
+      {
+        "description": "Create `skill_definitions`, `skill_sessions`, favorites/recent support if needed by the current UI slice, and seed DBT skills.",
+        "subtasks": [
+          "Seed only skills visible in this slice."
+        ]
+      },
+      {
+        "description": "Create `agent_runs`, `agent_handoffs`, `safety_events`, and coach context reference columns needed for text coaching.",
+        "subtasks": [
+          "Redact raw sensitive text from operational fields."
+        ]
+      },
+      {
+        "description": "Create `chain_analyses` table with structured JSON sections, status, source refs, and prevention plan field.",
+        "subtasks": [
+          "Use ownership and updated-at indexes."
+        ]
+      },
+      {
+        "description": "Create `voice_sessions` and `transcript_artifacts` tables with do-not-save, retention, transcript opt-in, and deletion fields.",
+        "subtasks": [
+          "Raw audio storage is not modeled."
+        ]
+      },
+      {
+        "description": "Create `insight_cards` and `weekly_reviews` tables or views needed for displayed review data.",
+        "subtasks": [
+          "Evidence refs point to stable source entities."
+        ]
+      },
+      {
+        "description": "Create `session_packets`, share token metadata, export artifact fields, redaction config, and access audit support.",
+        "subtasks": [
+          "Share tokens must be revocable and expiring."
+        ]
+      },
+      {
+        "description": "Create privacy/deletion request fields, settings tables, support contacts, notification preferences, and app-lock metadata.",
+        "subtasks": [
+          "Do not store passcode in plaintext."
+        ]
+      },
+      {
+        "description": "Create `offline_queue_items`, `nudges`, optional `calendar_events`, sync metadata, and indexes for pending mutations.",
+        "subtasks": [
+          "Calendar event table remains unused unless MVP calendar import is approved."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "No production agent behavior yet; define safe static skeleton copy and no-AI fallback state.",
+        "subtasks": [
+          "Confirm no OpenAI call is made in Pass 0."
+        ]
+      },
+      {
+        "description": "Define Safety Guardian boundary copy and consent categories; no normal coaching behind missing consent.",
+        "subtasks": [
+          "Safety copy requires clinician/legal review before launch."
+        ]
+      },
+      {
+        "description": "Add structure recommendation rules for default anchors without invoking LLM unless reachable by this slice.",
+        "subtasks": [
+          "Record why default anchors were created."
+        ]
+      },
+      {
+        "description": "Add deterministic next-action selection for check-in state and Safety Guardian pre-check hook.",
+        "subtasks": [
+          "High-risk fixture must route to Safety Mode."
+        ]
+      },
+      {
+        "description": "Add Structure Coach rule path for day reset and minimum viable day recommendations.",
+        "subtasks": [
+          "Keep outputs short and action-oriented."
+        ]
+      },
+      {
+        "description": "Add diary-derived summary seed logic for next action and target hierarchy sorting.",
+        "subtasks": [
+          "Do not generate clinician claims without review."
+        ]
+      },
+      {
+        "description": "Add skill matcher rules by DBT module, situation, and current state.",
+        "subtasks": [
+          "Expose concise why-this-skill metadata internally."
+        ]
+      },
+      {
+        "description": "Wire Anchor Orchestrator, Structure Coach, Skills Coach, and Safety Guardian for text route with traceable tool calls.",
+        "subtasks": [
+          "Every reply ends with action, skill, choice, or safety step."
+        ]
+      },
+      {
+        "description": "Add Reflection Coach support for chain-analysis summaries and prevention-plan suggestions.",
+        "subtasks": [
+          "Avoid open-ended therapy-like monologues."
+        ]
+      },
+      {
+        "description": "Wire Voice Coach Realtime configuration, interruption handling, safety handoff, and consent/retention enforcement.",
+        "subtasks": [
+          "Voice must not simulate crisis therapy."
+        ]
+      },
+      {
+        "description": "Add Reflection Coach synthesis for insights and weekly review with evidence refs and confidence labels.",
+        "subtasks": [
+          "Sort targets by DBT hierarchy."
+        ]
+      },
+      {
+        "description": "Add Reflection Coach session-packet summarization constrained to stable fields and selected chain analyses.",
+        "subtasks": [
+          "Respect redactions before generation/export."
+        ]
+      },
+      {
+        "description": "Add retention-policy enforcement hooks and data-category redaction for traces, transcripts, exports, and deletion.",
+        "subtasks": [
+          "Trace retention defaults to 30 days unless changed."
+        ]
+      },
+      {
+        "description": "Add notification wording rules, offline safety fallback behavior, and sync conflict decision logging.",
+        "subtasks": [
+          "Nudge copy must be non-shaming."
+        ]
+      }
+    ],
+    [
+      {
+        "description": "Write failing backend test for snapshot route and browser test for seeded data render, then make both green.",
+        "subtasks": [
+          "Verify forced API failure renders an error."
+        ]
+      },
+      {
+        "description": "Write tests for consent validation, consent persistence, boundary copy presence, and browser safety/consent flow.",
+        "subtasks": [
+          "Check keyboard navigation and focus order."
+        ]
+      },
+      {
+        "description": "Write tests for onboarding validation, routine creation, timezone handling, and browser routine setup flow.",
+        "subtasks": [
+          "Test low-stimulation state."
+        ]
+      },
+      {
+        "description": "Write tests for check-in validation, anchor completion, next-action render, and safety fixture branching.",
+        "subtasks": [
+          "Browser test must complete the flow in under 30 seconds manually/observationally."
+        ]
+      },
+      {
+        "description": "Write tests for day reset route, minimum viable day state, missed-anchor browser flow, and rollback on error.",
+        "subtasks": [
+          "Verify original history is preserved."
+        ]
+      },
+      {
+        "description": "Write tests for diary schema validation, target mapping, save/load, partial/complete states, and browser form completion.",
+        "subtasks": [
+          "Check stable export fields exist."
+        ]
+      },
+      {
+        "description": "Write tests for skill list/detail/session completion, timer UI, empty state, and helpfulness capture.",
+        "subtasks": [
+          "Verify keyboard use for exercise controls."
+        ]
+      },
+      {
+        "description": "Write tests for coach route, Safety Guardian normal/elevated/acute fixtures, traces, and browser Safety Mode override.",
+        "subtasks": [
+          "Acute fixture must lock normal coaching."
+        ]
+      },
+      {
+        "description": "Write tests for chain draft/create/update/resume, structured section validation, and prevention-plan completion.",
+        "subtasks": [
+          "Browser test resumes an in-progress draft."
+        ]
+      },
+      {
+        "description": "Write tests for client-secret preconditions, no API key leakage, captions/transcript preview, mute/end/reconnect, and safety exit.",
+        "subtasks": [
+          "Use mocked OpenAI response for route tests."
+        ]
+      },
+      {
+        "description": "Write tests for insight calculations, weekly review generation, no-data states, hierarchy sorting, and browser trend rendering.",
+        "subtasks": [
+          "Verify evidence refs are present."
+        ]
+      },
+      {
+        "description": "Write tests for session packet generation, redaction, export/share success/failure, scoped share access, and audit log.",
+        "subtasks": [
+          "Redacted fields must not appear in packet payload."
+        ]
+      },
+      {
+        "description": "Write tests for privacy export/delete, transcript retention toggle, app-lock settings, share revocation, and audit logs.",
+        "subtasks": [
+          "Verify destructive actions require confirmation."
+        ]
+      },
+      {
+        "description": "Write tests for service worker registration, offline queue idempotency, sync conflicts, notification quiet hours, and PWA install criteria.",
+        "subtasks": [
+          "Browser test covers offline capture and later sync."
+        ]
+      }
+    ]
+  ],
+  "statuses": [
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo",
+      "todo"
+    ]
+  ]
+}

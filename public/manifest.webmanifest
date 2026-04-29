@@ -1,0 +1,10 @@
+{
+  "name": "Anchor",
+  "short_name": "Anchor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f8f4",
+  "theme_color": "#2f6f5e",
+  "description": "DBT daily structure companion",
+  "icons": []
+}
