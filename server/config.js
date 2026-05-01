@@ -1,11 +1,15 @@
-export function getPublicConfig() {
+export function getPublicConfig(config = getServerConfig()) {
   return {
     appName: "Anchor",
-    environment: process.env.APP_ENV ?? process.env.NODE_ENV ?? "test",
+    environment: config.appEnv,
     supportLocale: "US",
     crisisResources: {
       emergency: "911",
       suicideCrisisLifeline: "988"
+    },
+    voice: {
+      liveRealtimeAvailable: Boolean(config.openaiApiKey),
+      realtimeModel: config.realtimeModel
     }
   };
 }
@@ -23,7 +27,8 @@ export function getServerConfig(env = process.env) {
     textModel: env.TEXT_MODEL ?? "gpt-4.1-mini",
     traceRetentionDays: Number(env.TRACE_RETENTION_DAYS ?? 30),
     exportDir: env.EXPORT_DIR ?? ".anchor-data/exports",
-    openaiRealtimeCallsUrl: env.OPENAI_REALTIME_CALLS_URL ?? "https://api.openai.com/v1/realtime/calls"
+    openaiRealtimeCallsUrl: env.OPENAI_REALTIME_CALLS_URL ?? "https://api.openai.com/v1/realtime/calls",
+    forceRealtimeNetwork: env.OPENAI_REALTIME_LIVE_TEST === "1" || env.FORCE_REALTIME_NETWORK === "1"
   };
 
   config.secureCookies = appEnv === "production";

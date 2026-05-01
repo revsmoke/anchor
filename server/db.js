@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { REQUIRED_CONSENT_TYPES } from "./auth/validation.js";
 
 const DIARY_SCHEMA = {
   version: "v1",
@@ -132,6 +133,132 @@ export function createDb(databaseUrl) {
         order by consent_type, granted_at desc, id desc
       `;
       return rows.map(consentFromRow);
+    },
+
+    async getAppBootstrap(userId) {
+      const consents = await this.getConsentsForUser(userId);
+      const profileRows = await sql`
+        select id::text
+        from user_profiles
+        where user_id = ${userId}
+        limit 1
+      `;
+      const todayRows = await sql`
+        select
+          ri.id::text,
+          ri.user_id::text,
+          ri.routine_template_id::text,
+          rt.type,
+          ri.target_time,
+          ri.status,
+          ri.completed_at,
+          ri.completed_check_in_id::text
+        from routine_instances ri
+        join routine_templates rt on rt.id = ri.routine_template_id
+        where ri.user_id = ${userId}
+          and ri.instance_date = current_date
+        order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
+      `;
+      const dailyPlanRows = await sql`
+        select
+          id::text,
+          user_id::text,
+          plan_date,
+          next_best_step,
+          mode,
+          must_dos,
+          deferred_items,
+          regulation_action,
+          reset_history
+        from daily_plans
+        where user_id = ${userId}
+          and plan_date = current_date
+        limit 1
+      `;
+      const consentComplete = REQUIRED_CONSENT_TYPES.every(type =>
+        consents.some(consent => consent.type === type && consent.granted)
+      );
+      const onboardingComplete = profileRows.length > 0 && todayRows.length === 3;
+
+      return {
+        consents,
+        consentComplete,
+        onboardingComplete,
+        today: todayRows.map(routineInstanceFromRow),
+        dailyPlan: dailyPlanRows[0] ? dailyPlanFromRow(dailyPlanRows[0]) : null,
+        nextStep: !consentComplete ? "consent" : onboardingComplete ? "main_app" : "onboarding_profile"
+      };
+    },
+
+    async createPasswordResetToken(userId, reset) {
+      const rows = await sql`
+        insert into password_reset_tokens (
+          user_id,
+          token_hash,
+          request_metadata,
+          expires_at
+        )
+        values (
+          ${userId},
+          ${reset.tokenHash},
+          ${sql.json(reset.requestMetadata ?? {})},
+          ${reset.expiresAt}
+        )
+        returning id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+      `;
+      return passwordResetTokenFromRow(rows[0]);
+    },
+
+    async getActivePasswordResetTokens(userId) {
+      const rows = await sql`
+        select id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+        from password_reset_tokens
+        where user_id = ${userId}
+          and used_at is null
+          and locked_at is null
+          and attempt_count < 5
+          and expires_at > now()
+        order by created_at desc
+      `;
+      return rows.map(passwordResetTokenFromRow);
+    },
+
+    async recordPasswordResetFailure(userId) {
+      await sql`
+        update password_reset_tokens
+        set attempt_count = attempt_count + 1,
+            locked_at = case when attempt_count + 1 >= 5 then now() else locked_at end
+        where user_id = ${userId}
+          and used_at is null
+          and locked_at is null
+          and expires_at > now()
+      `;
+    },
+
+    async consumePasswordResetToken(userId, tokenId) {
+      const rows = await sql`
+        update password_reset_tokens
+        set used_at = now()
+        where id = ${tokenId}
+          and user_id = ${userId}
+          and used_at is null
+        returning id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+      `;
+      return rows[0] ? passwordResetTokenFromRow(rows[0]) : null;
+    },
+
+    async updateUserPassword(userId, passwordHash) {
+      const rows = await sql`
+        update users
+        set password_hash = ${passwordHash}
+        where id = ${userId}
+        returning id::text, email, password_hash, timezone, locale, status
+      `;
+      return rows[0] ? userFromRow(rows[0]) : null;
+    },
+
+    async deleteSessionsForUser(userId) {
+      await sql`delete from sessions where user_id = ${userId}`;
     },
 
     async saveUserProfile(userId, profile) {
@@ -1137,13 +1264,14 @@ export function createDb(databaseUrl) {
         await transaction`delete from voice_sessions where user_id = ${userId}`;
         await transaction`delete from session_packets where user_id = ${userId}`;
         await transaction`delete from privacy_exports where user_id = ${userId}`;
+        await transaction`delete from password_reset_tokens where user_id = ${userId}`;
         await transaction`delete from chain_analyses where user_id = ${userId}`;
         await transaction`delete from coach_messages where user_id = ${userId}`;
         await transaction`delete from agent_runs where user_id = ${userId}`;
         await transaction`delete from skill_sessions where user_id = ${userId}`;
         await transaction`delete from diary_entries where user_id = ${userId}`;
-        await transaction`delete from quick_check_ins where user_id = ${userId}`;
         await transaction`delete from routine_instances where user_id = ${userId}`;
+        await transaction`delete from quick_check_ins where user_id = ${userId}`;
         await transaction`delete from routine_templates where user_id = ${userId}`;
         await transaction`delete from daily_plans where user_id = ${userId}`;
         await transaction`delete from user_settings where user_id = ${userId}`;
@@ -1248,6 +1376,20 @@ function consentFromRow(row) {
     type: row.consent_type ?? row.type,
     granted: row.granted,
     userId: row.user_id ?? row.userId
+  };
+}
+
+function passwordResetTokenFromRow(row) {
+  const expiresAt = row.expires_at ?? row.expiresAt;
+  const usedAt = row.used_at ?? row.usedAt;
+  return {
+    id: row.id,
+    userId: row.user_id ?? row.userId,
+    tokenHash: row.token_hash ?? row.tokenHash,
+    attemptCount: row.attempt_count ?? row.attemptCount ?? 0,
+    lockedAt: row.locked_at ?? row.lockedAt ?? null,
+    expiresAt: expiresAt instanceof Date ? expiresAt.toISOString() : expiresAt,
+    usedAt: usedAt instanceof Date ? usedAt.toISOString() : usedAt
   };
 }
 

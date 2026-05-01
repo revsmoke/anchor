@@ -24,6 +24,18 @@
     {
       "name": "Observability, Audit, and Release Checks",
       "note": "Audit events and private-beta readiness checks."
+    },
+    {
+      "name": "Full-Function Live OpenAI Test Slice",
+      "note": "Generated seed data, real Realtime WebSocket smoke, live browser WebRTC voice, exports, offline, deletion, and console verification."
+    },
+    {
+      "name": "Returning User Auth and Password Reset",
+      "note": "Segmented sign-in/create-account UX, returning-user bootstrap, dev reset code flow, semantic dialogs, and peaceful motion."
+    },
+    {
+      "name": "Session Shell Navigation and Guided UX",
+      "note": "Checking-session bootstrap, authenticated nav/menu/logout, network-first app shell cache, and one-section-at-a-time guided product flow."
     }
   ],
   "layers": [
@@ -95,6 +107,24 @@
         "subtasks": [
           "Manual smoke confirms no console issues."
         ]
+      },
+      {
+        "description": "Expose live-test browser states for real WebRTC voice, generated workflow data, exports, offline sync, and deletion.",
+        "subtasks": [
+          "Keep normal browser flow deterministic unless live flag is set."
+        ]
+      },
+      {
+        "description": "Replace signup-only first screen with semantic account-access UI, segmented modes, reset dialog, and calm transitions.",
+        "subtasks": [
+          "Use sign-in as default and keep create-account consent explicit."
+        ]
+      },
+      {
+        "description": "Add authenticated shell, primary nav, menu, logout, and Today-first guided view.",
+        "subtasks": [
+          "Show one product section at a time."
+        ]
       }
     ],
     [
@@ -132,6 +162,24 @@
         "description": "Register service worker progressively and keep failures non-fatal.",
         "subtasks": [
           "Sensitive API responses are never cached."
+        ]
+      },
+      {
+        "description": "Create real RTCPeerConnection offer, fake generated audio capture, Realtime data-channel event handling, and cleanup.",
+        "subtasks": [
+          "Use local fallback for default tests."
+        ]
+      },
+      {
+        "description": "Wire auth state, returning-user bootstrap, reset request/confirm, and dialog focus behavior in vanilla JS.",
+        "subtasks": [
+          "Reveal onboarding or main app based on bootstrap state."
+        ]
+      },
+      {
+        "description": "Own session boot state, no-store API fetches, guided section routing, menu toggling, and logout behavior in vanilla JS.",
+        "subtasks": [
+          "Keep auth hidden while bootstrap is pending."
         ]
       }
     ],
@@ -171,6 +219,24 @@
         "subtasks": [
           "Checks config, db health, and required tables."
         ]
+      },
+      {
+        "description": "Add opt-in live-test config, seeded API workflows, Realtime WebSocket smoke, and server-mediated WebRTC call setup.",
+        "subtasks": [
+          "Never expose OPENAI_API_KEY."
+        ]
+      },
+      {
+        "description": "Add authenticated app bootstrap plus password reset request and confirm routes.",
+        "subtasks": [
+          "Keep reset responses account-enumeration safe and production-safe."
+        ]
+      },
+      {
+        "description": "Return no-store bootstrap responses and reuse existing logout route for shell sign-out.",
+        "subtasks": [
+          "Do not add new session persistence semantics."
+        ]
       }
     ],
     [
@@ -208,6 +274,24 @@
         "description": "Create audit events table.",
         "subtasks": [
           "Metadata is redacted before storage."
+        ]
+      },
+      {
+        "description": "Generate repeatable prototype data across auth, consent, routines, diary, skills, coach, chain, voice, exports, offline, and deletion.",
+        "subtasks": [
+          "Seed command is idempotent."
+        ]
+      },
+      {
+        "description": "Persist password reset tokens and expose bootstrap state for consents, today anchors, and daily plan.",
+        "subtasks": [
+          "Invalidate sessions after successful password reset."
+        ]
+      },
+      {
+        "description": "No schema change; use existing sessions, bootstrap data, anchors, and daily plan state.",
+        "subtasks": [
+          "Logout clears the session only."
         ]
       }
     ],
@@ -247,6 +331,24 @@
         "subtasks": [
           "Readiness check gates private beta."
         ]
+      },
+      {
+        "description": "Exercise OpenAI Realtime with generated audio/content and preserve transcript/save controls.",
+        "subtasks": [
+          "Backend owns standard API key."
+        ]
+      },
+      {
+        "description": "Preserve consent gates and crisis boundaries while enabling returning users to resume work.",
+        "subtasks": [
+          "No password/reset secrets are logged or exposed in production."
+        ]
+      },
+      {
+        "description": "Keep crisis resources visible and prevent stale app-shell cache from masking current session UX.",
+        "subtasks": [
+          "Sensitive API responses remain uncached."
+        ]
       }
     ],
     [
@@ -285,6 +387,24 @@
         "subtasks": [
           "Update ledger/history/NotebookLM."
         ]
+      },
+      {
+        "description": "Run default tests, seeded API tests, live OpenAI tests, live browser WebRTC, and update project tracking artifacts.",
+        "subtasks": [
+          "Verify zero unexpected browser console issues."
+        ]
+      },
+      {
+        "description": "Cover signup, returning sign-in, existing session bootstrap, reset code flow, and console-clean browser smoke.",
+        "subtasks": [
+          "Run db reset, API tests, browser tests, and manual 3210 smoke."
+        ]
+      },
+      {
+        "description": "Cover authenticated refresh, one-section guided nav, logout, stale cache cleanup, API tests, and full browser regression.",
+        "subtasks": [
+          "Run db reset, bun test, browser tests, and manual 3210 smoke."
+        ]
       }
     ]
   ],
@@ -295,11 +415,6 @@
       "done",
       "done",
       "done",
-      "done"
-    ],
-    [
-      "done",
-      "done",
       "done",
       "done",
       "done",
@@ -309,11 +424,6 @@
       "done",
       "done",
       "done",
-      "done",
-      "done",
-      "done"
-    ],
-    [
       "done",
       "done",
       "done",
@@ -327,9 +437,37 @@
       "done",
       "done",
       "done",
+      "done",
+      "done",
+      "done",
       "done"
     ],
     [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
       "done",
       "done",
       "done",

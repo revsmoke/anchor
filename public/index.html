@@ -9,11 +9,41 @@
     <script type="module" src="/js/app.js"></script>
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" data-app-state="booting">
       <header class="hero">
         <p class="eyebrow">DBT daily structure companion</p>
         <h1>Anchor</h1>
         <p class="boundary">Anchor supports DBT practice. It is not therapy or emergency care. If you are in immediate danger, call 911 or 988 in the U.S.</p>
+      </header>
+
+      <section id="app-boot-status" class="boot-status" role="status" aria-live="polite">
+        Checking your Anchor session...
+      </section>
+
+      <header id="authenticated-shell" class="authenticated-shell" hidden>
+        <div class="shell-summary">
+          <p class="section-label">Signed in</p>
+          <h2>Anchor</h2>
+          <p id="current-view-label" class="boundary">Today</p>
+        </div>
+        <div class="shell-controls">
+          <button type="button" id="app-menu-toggle" class="button-secondary" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+          <button type="button" id="logout-button" class="button-secondary">Log out</button>
+        </div>
+        <nav id="primary-nav" class="primary-nav" aria-label="Primary">
+          <button type="button" data-view-target="today" aria-pressed="true">Today</button>
+          <button type="button" data-view-target="check-in" aria-pressed="false">Check-in</button>
+          <button type="button" data-view-target="reset" aria-pressed="false">Reset</button>
+          <button type="button" data-view-target="diary" aria-pressed="false">Diary</button>
+          <button type="button" data-view-target="skills" aria-pressed="false">Skills</button>
+          <button type="button" data-view-target="coach" aria-pressed="false">Coach</button>
+          <button type="button" data-view-target="chain" aria-pressed="false">Chain</button>
+          <button type="button" data-view-target="voice" aria-pressed="false">Voice</button>
+          <button type="button" data-view-target="insights" aria-pressed="false">Insights</button>
+          <button type="button" data-view-target="packet" aria-pressed="false">Exports</button>
+          <button type="button" data-view-target="privacy" aria-pressed="false">Privacy</button>
+          <button type="button" data-view-target="offline" aria-pressed="false">Offline</button>
+        </nav>
       </header>
 
       <section class="snapshot-card" aria-labelledby="snapshot-heading">
@@ -42,10 +72,10 @@
         <div id="snapshot-error" class="error" role="alert" hidden></div>
       </section>
 
-      <section class="consent-card" aria-labelledby="consent-heading">
+      <section class="auth-card" id="auth-section" aria-labelledby="auth-region-heading" hidden>
         <div>
-          <p class="section-label">Safety and consent</p>
-          <h2 id="consent-heading">Before you begin</h2>
+          <p class="section-label">Safety and access</p>
+          <h2 id="auth-region-heading">Account access</h2>
           <p class="boundary">Anchor supports DBT practice. It is not therapy or emergency care. If you are in immediate danger, use emergency support now.</p>
         </div>
 
@@ -54,8 +84,18 @@
           <a href="sms:988">Call or text 988</a>
         </div>
 
-        <form id="consent-form" class="consent-form" novalidate>
-          <div class="field-grid">
+        <div class="auth-tabs" role="group" aria-label="Account access mode">
+          <button type="button" id="auth-mode-signin" aria-pressed="true">Sign in</button>
+          <button type="button" id="auth-mode-signup" aria-pressed="false">Create account</button>
+        </div>
+
+        <form id="auth-form" class="consent-form auth-form" novalidate>
+          <div class="auth-mode-copy">
+            <h3 id="auth-heading">Welcome back</h3>
+            <p id="auth-copy" class="boundary">Sign in with the email and password you used to start Anchor.</p>
+          </div>
+
+          <div class="field-grid" id="auth-fields">
             <label>
               Email
               <input id="email" name="email" type="email" autocomplete="email" required>
@@ -66,24 +106,68 @@
             </label>
           </div>
 
-          <label class="checkbox-row">
-            <input id="consent-crisis" type="checkbox" value="crisis_limits">
-            I understand Anchor is not emergency care.
-          </label>
-          <label class="checkbox-row">
-            <input id="consent-privacy" type="checkbox" value="privacy_choices">
-            I understand privacy choices and data retention settings.
-          </label>
-          <label class="checkbox-row">
-            <input id="consent-voice" type="checkbox" value="voice_audio">
-            I understand voice audio and transcript choices.
-          </label>
+          <fieldset id="signup-consents" class="signup-consents" hidden>
+            <legend>Consent for new accounts</legend>
+            <label class="checkbox-row">
+              <input id="consent-crisis" type="checkbox" value="crisis_limits">
+              I understand Anchor is not emergency care.
+            </label>
+            <label class="checkbox-row">
+              <input id="consent-privacy" type="checkbox" value="privacy_choices">
+              I understand privacy choices and data retention settings.
+            </label>
+            <label class="checkbox-row">
+              <input id="consent-voice" type="checkbox" value="voice_audio">
+              I understand voice audio and transcript choices.
+            </label>
+          </fieldset>
 
-          <button type="submit">Create account and save consent</button>
-          <div id="consent-error" class="error" role="alert" hidden></div>
-          <div id="consent-status" class="success" role="status" hidden></div>
+          <div class="auth-actions">
+            <button type="submit" id="auth-submit">Sign in</button>
+            <button type="button" id="forgot-password-open" class="button-secondary">Forgot password?</button>
+          </div>
+          <div id="auth-error" class="error" role="alert" hidden></div>
+          <div id="auth-status" class="success" role="status" hidden></div>
         </form>
       </section>
+
+      <dialog id="password-reset-dialog" aria-labelledby="password-reset-heading" hidden>
+        <button type="button" id="password-reset-close" class="dialog-close" aria-label="Close reset dialog">Close</button>
+        <div class="dialog-body">
+          <p class="section-label">Password reset</p>
+          <h2 id="password-reset-heading">Find your way back in</h2>
+          <p class="boundary">Enter your email and Anchor will give you a reset code in this prototype.</p>
+
+          <form id="password-reset-request-form" class="consent-form" novalidate>
+            <label>
+              Account address
+              <input id="reset-email" name="email" type="email" autocomplete="email" required>
+            </label>
+            <button type="submit">Get reset code</button>
+          </form>
+
+          <div id="reset-code-panel" class="routine-result" hidden>
+            <p>Prototype reset code: <strong id="reset-dev-code"></strong></p>
+          </div>
+
+          <form id="password-reset-confirm-form" class="consent-form" novalidate hidden>
+            <div class="field-grid">
+              <label>
+                Reset code
+                <input id="reset-code" name="resetCode" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+              </label>
+              <label>
+                New passphrase
+                <input id="reset-new-password" name="newPassword" type="password" autocomplete="new-password" minlength="12" required>
+              </label>
+            </div>
+            <button type="submit">Reset password</button>
+          </form>
+
+          <div id="password-reset-error" class="error" role="alert" hidden></div>
+          <div id="password-reset-status" class="success" role="status" hidden></div>
+        </div>
+      </dialog>
 
       <section class="onboarding-card" id="onboarding-section" aria-labelledby="onboarding-heading" hidden>
         <div>
@@ -141,12 +225,27 @@
           <div id="onboarding-error" class="error" role="alert" hidden></div>
           <div id="onboarding-status" class="success" role="status" hidden></div>
 
-          <div id="routine-result" class="routine-result" hidden>
-            <h3>Today's anchors</h3>
-            <ul data-testid="anchor-list"></ul>
-            <p id="next-best-step"></p>
-          </div>
         </form>
+      </section>
+
+      <section class="today-card" id="today-section" aria-labelledby="today-heading" hidden>
+        <div>
+          <p class="section-label">Today</p>
+          <h2 id="today-heading">Today</h2>
+          <p class="boundary">Start with the next useful step. Other tools stay available from the menu when you need them.</p>
+        </div>
+
+        <div id="routine-result" class="routine-result" hidden>
+          <h3>Your three anchors are ready.</h3>
+          <ul data-testid="anchor-list"></ul>
+          <p id="next-best-step"></p>
+        </div>
+
+        <div class="today-actions" aria-label="Suggested next actions">
+          <button type="button" data-view-target="check-in">Start check-in</button>
+          <button type="button" data-view-target="skills" class="button-secondary">Practice a skill</button>
+          <button type="button" data-view-target="voice" class="button-secondary">Open voice</button>
+        </div>
       </section>
 
       <section class="check-in-card" id="check-in-section" aria-labelledby="check-in-heading" hidden>
@@ -573,18 +672,24 @@
         <div>
           <p class="section-label">Voice support</p>
           <h2 id="voice-heading">Live Voice Coach</h2>
-          <p class="boundary">Start a deterministic local voice session stub with transcript preview and explicit save choices.</p>
+          <p class="boundary">Start a server-mediated Realtime voice session with transcript preview and explicit save choices.</p>
         </div>
 
         <form id="voice-form" class="consent-form" novalidate>
           <label class="checkbox-row">
+            <input id="voice-use-live-agent" name="useLiveAgent" type="checkbox" disabled>
+            Use real OpenAI voice agent
+          </label>
+          <label class="checkbox-row">
             <input id="voice-do-not-save" name="doNotSave" type="checkbox">
             Do not save this voice session
           </label>
+          <p id="voice-live-availability" class="status">Checking live voice availability...</p>
           <button type="submit">Start Voice Session</button>
           <div id="voice-error" class="error" role="alert" hidden></div>
           <div id="voice-status" class="success" role="status" hidden></div>
           <p id="voice-preview" class="section-result" hidden></p>
+          <audio id="voice-remote-audio" autoplay hidden></audio>
         </form>
 
         <button type="button" id="voice-end" hidden>End Voice Session</button>

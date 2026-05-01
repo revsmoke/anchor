@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 async function completeRoutineSetup(page) {
   await page.goto("/");
+  await page.locator("#auth-mode-signup").click();
   await page.getByLabel("Email").fill(`pass7-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("passphrase-123");
   await page.getByLabel("I understand Anchor is not emergency care").check();
   await page.getByLabel("I understand privacy choices and data retention settings").check();
   await page.getByLabel("I understand voice audio and transcript choices").check();
-  await page.getByRole("button", { name: "Create account and save consent" }).click();
+  await page.locator("#auth-submit").click();
   await expect(page.getByText("Consent saved. Next: onboarding setup.")).toBeVisible();
 
   await page.getByLabel("Wake time").fill("07:00");
@@ -17,6 +18,7 @@ async function completeRoutineSetup(page) {
   await page.getByLabel("Therapy status").selectOption("self_directed");
   await page.getByRole("button", { name: "Create my day" }).click();
   await expect(page.getByText("Your three anchors are ready.")).toBeVisible();
+  await page.getByRole("button", { name: "Coach" }).click();
 }
 
 test("sends a normal text coach message and renders next action", async ({ page }) => {

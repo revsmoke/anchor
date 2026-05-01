@@ -9,8 +9,10 @@
     "test:browser": "playwright test",
     "db:migrate": "bun scripts/db-migrate.js",
     "db:seed": "bun scripts/db-seed.js",
+    "db:seed:live-test": "bun scripts/db-seed-live-test.js",
     "db:reset": "bun scripts/db-reset.js",
-    "check:private-beta": "bun scripts/private-beta-check.js"
+    "check:private-beta": "bun scripts/private-beta-check.js",
+    "test:openai:live": "bun scripts/run-openai-live-tests.js"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

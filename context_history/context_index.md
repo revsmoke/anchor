@@ -13,3 +13,8 @@
 - 2026-04-26: [Anchor Pass 7 Text Coach Safety Gate](contexts/2026-04-26_anchor-pass7-text-coach-safety-gate.md)
 - 2026-04-28: [Anchor Pass 8-13 Final Vertical Slices](contexts/2026-04-28_anchor-pass8-13-final-slices.md)
 - 2026-04-28: [Anchor Production Hardening](contexts/2026-04-28_anchor-production-hardening.md)
+- 2026-04-29: [Anchor Full-Function Live OpenAI Tests](contexts/2026-04-29_anchor-live-openai-full-function-tests.md)
+- 2026-04-29: [Anchor README Realtime Agent Docs](contexts/2026-04-29_anchor-readme-realtime-agent-docs.md)
+- 2026-04-29: [Anchor Returning User Auth and Password Reset](contexts/2026-04-29_anchor-returning-user-auth-password-reset.md)
+- 2026-04-30: [Anchor Returning-User Auth Pre-Task Verification](contexts/2026-04-30_anchor-returning-user-auth-pretask.md)
+- 2026-05-01: [Anchor Session Shell and Guided Navigation](contexts/2026-05-01_anchor-session-shell-guided-navigation.md)

@@ -1,5 +1,21 @@
 # Anchor Capability Ledger
 
+## Session Shell, Navigation, and Guided UX (complete)
+
+- Frontend: `public/index.html` now starts in a checking-session state, adds a semantic authenticated shell with primary navigation, menu control, logout button, and a guided `Today` view.
+- CSS: `public/css/app.css` styles the app shell, responsive nav/menu behavior, guided section transitions, and preserves reduced-motion handling.
+- Client JS: `public/js/app.js` fetches authenticated bootstrap state before showing auth, uses no-store API fetches, switches one product section at a time, and logs out through the existing session route.
+- Service worker: `public/service-worker.js` now uses `anchor-app-shell-v2`, deletes stale app-shell caches, keeps `/api/*` uncached, and uses network-first behavior for app-shell assets with offline fallback.
+- Bun API: `GET /api/app/bootstrap` returns `Cache-Control: no-store`.
+- UX: returning users no longer see account creation while bootstrap is pending; complete users land on `Today`, then intentionally navigate to Check-in, Reset, Diary, Skills, Coach, Chain, Voice, Insights, Exports, Privacy, or Offline.
+- Tests:
+  - `bun run db:reset` passed.
+  - `bun run test` passed: 59 unit/API tests.
+  - `PORT=3212 bun run test:browser` passed: 41 Playwright tests, 1 live OpenAI test skipped.
+  - Manual smoke at `http://127.0.0.1:3210` passed for create-account, routine setup, Today nav, section switch, logout, and 0 console issues.
+- Current blocker:
+  - None. Live OpenAI browser coverage remains opt-in through `OPENAI_REALTIME_LIVE_TEST=1`.
+
 ## Pass 0: Walking Skeleton (complete)
 
 - Frontend: `public/index.html` loads an Anchor shell, boundary notice, and Today snapshot region.
@@ -296,3 +312,43 @@
 - Current blocker:
   - None for private-beta hardening implementation.
   - Remaining non-code gates: clinical/legal review and deployment environment provisioning with real production secrets.
+
+## Live OpenAI Full-Function Test Slice (complete)
+
+- Frontend usability: Live Voice Coach now exposes a visible `Use real OpenAI voice agent` checkbox. It is enabled when `/api/config/public` reports `OPENAI_API_KEY` availability on the backend, giving users a clear way to turn the real Realtime agent on for a session.
+- Frontend: `public/js/app.js` supports explicit live WebRTC mode with real `RTCPeerConnection`, generated/fake browser audio capture in Playwright, SDP answer application, Realtime data-channel event tracking, and voice cleanup on end.
+- Bun API/config: `OPENAI_REALTIME_LIVE_TEST=1` or `FORCE_REALTIME_NETWORK=1` enables real Realtime network calls without requiring `APP_ENV=production`; default local/test behavior remains deterministic.
+- OpenAI Realtime: `server/services/realtime.js` sends server-owned SDP/session config to `/v1/realtime/calls`, parses call ids from `Location`, applies timeouts, redacts secret-shaped error text, and checks hangup response status.
+- Seed data: `bun run db:seed:live-test` creates repeatable generated prototype data for auth, consents, onboarding, routines, check-ins, diary, skills, coach, chain analysis, safety plan, voice sessions, weekly review, exports, offline mutations, privacy settings, and delete-request-ready state.
+- Live tests: `bun run test:openai:live` seeds data, runs full seeded API feature coverage, performs a real OpenAI Realtime WebSocket smoke test, and runs live Playwright WebRTC with generated browser audio.
+- Offline/deletion hardening: offline sync accepts generated routine completion and chain-analysis mutations; deletion execution order handles completed check-ins referenced by routine instances.
+- Dashboard artifacts:
+  - `vertical-slice-dashboard-anchor-hardening.json` now includes "Full-Function Live OpenAI Test Slice".
+  - `vertical-slice-dashboard.html` embedded `DEFAULT_STATE` reflects the completed live-test slice.
+- Tests:
+  - `bun run db:reset` passed.
+  - `bun run db:seed:live-test` passed.
+  - `bun run test` passed: 54 unit/API tests.
+  - `PORT=3212 bun run test:browser` passed: 33 Playwright browser tests plus 1 live OpenAI test skipped by default.
+  - `OPENAI_REALTIME_LIVE_TEST=1 bun run test:openai:live` passed: 3 live Bun tests and 1 live Playwright WebRTC test.
+- Current blocker:
+  - None for the live-test slice. Live OpenAI verification consumes API quota and remains explicitly opt-in.
+
+## Returning User Auth and Password Reset Slice (complete)
+
+- Frontend: first screen now uses a semantic Account Access region with `Sign in` and `Create account` modes, explicit new-account consent, native `<dialog>` password reset, and calm transitions with reduced-motion support.
+- Returning users: `GET /api/app/bootstrap` lets the browser resume saved state after sign-in or page reload, revealing consent completion, onboarding, or the main app based on server state.
+- Password reset: local/test/dev flow creates one-time reset codes, stores only hashed reset tokens, locks tokens after repeated bad attempts, updates the password, consumes the token, and invalidates existing sessions. Production responses do not expose reset codes.
+- Database/readiness: migration `016_password_reset_tokens.sql` adds reset-token persistence, and private-beta readiness includes the table.
+- Tests:
+  - RED verified before implementation: API failed on missing bootstrap/reset routes; browser failed on missing segmented auth/reset UI.
+  - `bun run db:reset` passed with migrations 001-016 and seed load.
+  - `bun run test` passed: 58 unit/API tests.
+  - `PORT=3212 bun run test:browser` passed: 35 Playwright browser tests plus 1 live OpenAI test skipped by default.
+- Manual browser verification:
+  - URL: `http://127.0.0.1:3210`
+  - Created account, completed onboarding, cleared cookies, signed back in with the same account, resumed the main app, and saw 0 console/page errors.
+- Dashboard artifacts:
+  - `vertical-slice-dashboard-anchor-hardening.json` and `vertical-slice-dashboard.html` include "Returning User Auth and Password Reset" marked `done` across all layers.
+- Current blocker:
+  - None for returning-user auth/reset. Real email delivery remains deferred; local/dev reset code flow is intentional for the prototype.

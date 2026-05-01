@@ -6,6 +6,7 @@ const REQUIRED_TABLES = [
   "session_packets",
   "privacy_exports",
   "delete_requests",
+  "password_reset_tokens",
   "offline_mutations",
   "export_artifacts",
   "audit_events"

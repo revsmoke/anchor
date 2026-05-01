@@ -50,6 +50,10 @@ describe("Pass 0 routes", () => {
         crisisResources: {
           emergency: "911",
           suicideCrisisLifeline: "988"
+        },
+        voice: {
+          liveRealtimeAvailable: Boolean(process.env.OPENAI_API_KEY),
+          realtimeModel: "gpt-realtime"
         }
       }
     });

@@ -14,6 +14,8 @@ import {
   validateDeleteExecutionPayload,
   validateDeleteRequestPayload,
   validateOfflineQueuePayload,
+  validatePasswordResetConfirmPayload,
+  validatePasswordResetRequestPayload,
   validateSkillSessionPayload,
   validatePrivacyExportPayload,
   validateQuickCheckInPayload,
@@ -58,7 +60,7 @@ export function createApp({
       }
 
       if (request.method === "GET" && url.pathname === "/api/config/public") {
-        return jsonOk(getPublicConfig());
+        return jsonOk(getPublicConfig(config));
       }
 
       if (request.method === "GET" && url.pathname === "/api/csrf") {
@@ -81,8 +83,20 @@ export function createApp({
         return handleLogout(db, request, config);
       }
 
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/request") {
+        return handlePasswordResetRequest(db, request, config);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") {
+        return handlePasswordResetConfirm(db, request);
+      }
+
       if (request.method === "GET" && url.pathname === "/api/me") {
         return handleMe(db, request);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/app/bootstrap") {
+        return handleAppBootstrap(db, request);
       }
 
       if (request.method === "POST" && url.pathname === "/api/onboarding/consent") {
@@ -354,6 +368,88 @@ async function handleLogout(db, request, config) {
   );
 }
 
+async function handlePasswordResetRequest(db, request, config) {
+  const payload = await readJson(request);
+  const validation = validatePasswordResetRequestPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_password_reset_request", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const message = "If an account exists for that email, a password reset code is available.";
+  const user = await db.getUserByEmail(validation.value.email);
+  if (!user) {
+    return jsonOk({ message });
+  }
+
+  const resetCode = createPasswordResetCode();
+  await db.createPasswordResetToken(user.id, {
+    tokenHash: await hashPassword(resetCode),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    requestMetadata: {
+      source: "web",
+      appEnv: config.appEnv
+    }
+  });
+
+  return jsonOk({
+    message,
+    ...(canReturnDevResetCode(config) ? { devResetCode: resetCode } : {})
+  });
+}
+
+async function handlePasswordResetConfirm(db, request) {
+  const payload = await readJson(request);
+  const validation = validatePasswordResetConfirmPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_password_reset_confirm", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const user = await db.getUserByEmail(validation.value.email);
+  if (!user) {
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const tokens = await db.getActivePasswordResetTokens(user.id);
+  let matchingToken = null;
+  for (const token of tokens) {
+    if (await verifyPassword(token.tokenHash, validation.value.resetCode)) {
+      matchingToken = token;
+      break;
+    }
+  }
+
+  if (!matchingToken) {
+    if (typeof db.recordPasswordResetFailure === "function") {
+      await db.recordPasswordResetFailure(user.id);
+    }
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const consumed = await db.consumePasswordResetToken(user.id, matchingToken.id);
+  if (!consumed) {
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  await db.updateUserPassword(user.id, await hashPassword(validation.value.newPassword));
+  await db.deleteSessionsForUser(user.id);
+  return jsonOk({ passwordReset: true });
+}
+
 async function handleMe(db, request) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
@@ -362,6 +458,30 @@ async function handleMe(db, request) {
     user: publicUser(user),
     profile: null,
     consents: await db.getConsentsForUser(user.id)
+  });
+}
+
+async function handleAppBootstrap(db, request) {
+  const headers = { "cache-control": "no-store" };
+  if (!readSessionToken(request)) {
+    return jsonOk({
+      authenticated: false,
+      nextStep: "auth"
+    }, {
+      headers
+    });
+  }
+
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  const bootstrap = await db.getAppBootstrap(user.id);
+
+  return jsonOk({
+    ...bootstrap,
+    authenticated: true,
+    user: bootstrap.user ?? publicUser(user)
+  }, {
+    headers
   });
 }
 
@@ -728,14 +848,14 @@ async function handleVoiceClientSecret(db, request, config, realtimeClient) {
     model: config.realtimeModel,
     instructions: "You are Anchor's DBT practice voice coach. Keep responses short and action-oriented. Do not provide emergency care.",
     audio: {
-      input: { format: "pcm16" },
-      output: { format: "pcm16" }
+      output: { voice: "marin" }
     }
   };
   const call = validation.value.sdpOffer
     ? await realtimeClient.createCall({
       sdpOffer: validation.value.sdpOffer,
-      session
+      session,
+      forceNetwork: validation.value.useLiveRealtime
     })
     : {
       sdpAnswer: "v=0\r\no=- 2 2 IN IP4 127.0.0.1\r\ns=Anchor Local Answer\r\n",
@@ -794,7 +914,9 @@ async function handleVoiceEnd(db, request, realtimeClient, voiceSessionId) {
   }
 
   if (voiceSession.openAiCallId) {
-    await realtimeClient.hangup(voiceSession.openAiCallId);
+    await realtimeClient.hangup(voiceSession.openAiCallId, {
+      forceNetwork: voiceSession.openAiCallId !== "local_realtime_call"
+    });
   }
   await saveAuditIfSupported(db, user.id, "voice_ended", {
     voiceSessionId,
@@ -1359,6 +1481,15 @@ function publicUser(user) {
     locale: user.locale,
     status: user.status
   };
+}
+
+function createPasswordResetCode() {
+  const value = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  return String(value).padStart(6, "0");
+}
+
+function canReturnDevResetCode(config) {
+  return config.appEnv !== "production";
 }
 
 async function serveStatic(publicDir, pathname) {

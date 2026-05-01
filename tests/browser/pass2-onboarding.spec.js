@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 async function createConsentedAccount(page) {
   await page.goto("/");
+  await page.locator("#auth-mode-signup").click();
   await page.getByLabel("Email").fill(`pass2-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("passphrase-123");
   await page.getByLabel("I understand Anchor is not emergency care").check();
   await page.getByLabel("I understand privacy choices and data retention settings").check();
   await page.getByLabel("I understand voice audio and transcript choices").check();
-  await page.getByRole("button", { name: "Create account and save consent" }).click();
+  await page.locator("#auth-submit").click();
   await expect(page.getByRole("status")).toContainText("Consent saved");
 }
 

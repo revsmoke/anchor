@@ -88,6 +88,42 @@ export function validateLoginPayload(payload) {
   };
 }
 
+export function validatePasswordResetRequestPayload(payload) {
+  const email = String(payload?.email ?? "").trim().toLowerCase();
+
+  if (!email.includes("@") || email.length > 254) {
+    return { ok: false, message: "Enter a valid email." };
+  }
+
+  return {
+    ok: true,
+    value: { email }
+  };
+}
+
+export function validatePasswordResetConfirmPayload(payload) {
+  const email = String(payload?.email ?? "").trim().toLowerCase();
+  const resetCode = String(payload?.resetCode ?? "").trim();
+  const newPassword = String(payload?.newPassword ?? "");
+
+  if (!email.includes("@") || email.length > 254) {
+    return { ok: false, message: "Enter a valid email." };
+  }
+
+  if (!resetCode) {
+    return { ok: false, message: "Reset code is required." };
+  }
+
+  if (newPassword.length < 12) {
+    return { ok: false, message: "Password must be at least 12 characters." };
+  }
+
+  return {
+    ok: true,
+    value: { email, resetCode, newPassword }
+  };
+}
+
 export function validateConsentPayload(payload) {
   const consents = Array.isArray(payload?.consents) ? payload.consents : [];
   const consentMap = new Map(consents.map(consent => [consent?.type, consent?.granted === true]));
@@ -483,6 +519,7 @@ export function validateChainPatchPayload(payload) {
 export function validateVoiceClientSecretPayload(payload) {
   const mode = String(payload?.mode ?? "").trim();
   const doNotSave = payload?.doNotSave === true;
+  const useLiveRealtime = payload?.useLiveRealtime === true;
   const contextRefs = normalizeContextRefs(payload?.contextRefs);
   const sdpOffer = String(payload?.sdpOffer ?? "").trim();
 
@@ -495,6 +532,7 @@ export function validateVoiceClientSecretPayload(payload) {
     value: {
       mode,
       doNotSave,
+      useLiveRealtime,
       contextRefs,
       sdpOffer: sdpOffer || null
     }
@@ -664,7 +702,7 @@ export function validateOfflineQueuePayload(payload) {
 
   const invalid = normalized.find(mutation =>
     !mutation.clientMutationId ||
-    !["quick_check_in", "diary_entry", "skill_session"].includes(mutation.entityType) ||
+    !["quick_check_in", "diary_entry", "routine_completion", "skill_session", "chain_analysis"].includes(mutation.entityType) ||
     !["create", "update"].includes(mutation.operation) ||
     !mutation.occurredAt ||
     Number.isNaN(Date.parse(mutation.occurredAt))

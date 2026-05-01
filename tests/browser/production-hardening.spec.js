@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 async function completeRoutineSetup(page, prefix) {
   await page.goto("/");
+  await page.locator("#auth-mode-signup").click();
   await page.getByLabel("Email").fill(`${prefix}-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("passphrase-123");
   await page.getByLabel("I understand Anchor is not emergency care").check();
   await page.getByLabel("I understand privacy choices and data retention settings").check();
   await page.getByLabel("I understand voice audio and transcript choices").check();
-  await page.getByRole("button", { name: "Create account and save consent" }).click();
+  await page.locator("#auth-submit").click();
   await expect(page.getByText("Consent saved. Next: onboarding setup.")).toBeVisible();
 
   await page.getByLabel("Wake time").fill("07:00");
@@ -21,6 +22,7 @@ async function completeRoutineSetup(page, prefix) {
 
 test("hardening voice flow uses server-mediated session setup", async ({ page }) => {
   await completeRoutineSetup(page, "hardening-voice");
+  await page.getByRole("button", { name: "Voice", exact: true }).click();
 
   await page.getByLabel("Do not save this voice session").check();
   await page.getByRole("button", { name: "Start Voice Session" }).click();
@@ -35,6 +37,7 @@ test("hardening voice flow uses server-mediated session setup", async ({ page })
 
 test("hardening export generates an authenticated JSON download", async ({ page }) => {
   await completeRoutineSetup(page, "hardening-export");
+  await page.getByRole("button", { name: "Exports" }).click();
 
   await page.getByLabel("Include diary").check();
   await page.getByLabel("Include skills").check();
@@ -50,6 +53,7 @@ test("hardening export generates an authenticated JSON download", async ({ page 
 
 test("hardening deletion executes the privacy delete request", async ({ page }) => {
   await completeRoutineSetup(page, "hardening-delete");
+  await page.getByRole("button", { name: "Privacy" }).click();
 
   await page.getByLabel("Delete confirmation").fill("DELETE");
   await page.getByRole("button", { name: "Request Delete" }).click();
@@ -61,6 +65,7 @@ test("hardening deletion executes the privacy delete request", async ({ page }) 
 
 test("hardening PWA registers service worker and offline queue retries", async ({ page }) => {
   await completeRoutineSetup(page, "hardening-offline");
+  await page.getByRole("button", { name: "Offline" }).click();
 
   await expect.poll(async () => page.evaluate(async () => Boolean(await navigator.serviceWorker.getRegistration()))).toBe(true);
   await page.route("**/api/sync/offline-queue", route => route.abort());
@@ -81,6 +86,7 @@ test("hardening page has no console errors", async ({ page }) => {
   page.on("pageerror", error => issues.push(error.message));
 
   await completeRoutineSetup(page, "hardening-console");
+  await page.getByRole("button", { name: "Offline" }).click();
   await expect(page.getByRole("heading", { name: "Notifications and Offline Capture" })).toBeVisible();
   expect(issues).toEqual([]);
 });
