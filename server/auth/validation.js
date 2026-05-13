@@ -278,6 +278,37 @@ export function validateQuickCheckInPayload(payload) {
   };
 }
 
+export function validateFocusPlanPayload(payload) {
+  const focusText = String(payload?.focusText ?? "").trim();
+  const anticipatedHardMoment = String(payload?.anticipatedHardMoment ?? "").trim();
+  const plannedSkill = String(payload?.plannedSkill ?? "").trim();
+
+  if (!focusText) {
+    return { ok: false, message: "One focus is required." };
+  }
+
+  if (!anticipatedHardMoment) {
+    return { ok: false, message: "Likely hard moment is required." };
+  }
+
+  if (!plannedSkill) {
+    return { ok: false, message: "Skill or support step is required." };
+  }
+
+  if ([focusText, anticipatedHardMoment, plannedSkill].some(value => value.length > 180)) {
+    return { ok: false, message: "Focus plan fields must stay short." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      focusText,
+      anticipatedHardMoment,
+      plannedSkill
+    }
+  };
+}
+
 export function validateAnchorCompletionPayload(payload) {
   const completedAt = String(payload?.completedAt ?? "").trim();
   const checkInId = String(payload?.checkInId ?? "").trim();

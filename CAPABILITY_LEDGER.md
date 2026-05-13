@@ -1,5 +1,67 @@
 # Anchor Capability Ledger
 
+## Pass 1: Truthful Status and Evidence Baseline (complete)
+
+- Capability: maintainers can now trust the dashboard, README, and ledger to distinguish verified mechanics from prototype, settings-only, demo-fixture, blocked, and deferred surfaces without changing the dashboard status enum.
+- Dashboard contract: `vertical-slice-dashboard.html`, `vertical-slice-dashboard-anchor-hardening.json`, and `vertical-slice-dashboard-anchor-pass13.json` preserve SPEC-compatible `todo`, `active`, and `done` statuses.
+- Evidence metadata: active hardening dashboard state now includes `anchor-evidence-v1` labels for `verified`, `prototype`, `settings-only`, `demo-fixture`, and `blocked` surfaces.
+- Labeled surfaces:
+  - `verified`: implemented private-beta mechanics, authenticated JSON artifact downloads, service worker registration, opt-in live OpenAI test path, returning-user auth, and local/dev password reset.
+  - `prototype`: deterministic Text Coach, local/default voice flow, static skill timer, and incomplete V1 privacy controls.
+  - `settings-only`: notification preferences and quiet hours without browser permission, push subscription, scheduling, or delivery.
+  - `demo-fixture`: synthetic offline mutation sync tester and April 2026 seeded insights/export dates.
+  - `blocked`/`deferred`: therapist share links, passcode/app lock, clinical/legal gates, production deployment provisioning, and production email delivery.
+- README: `README.md` now calls out Text Coach as prototype behavior, export/privacy as partial prototype behavior, notifications as settings-only, offline queue as a demo fixture, and the current phase as V1 truthfulness/completion gaps after local private-beta hardening.
+- Tests:
+  - RED: `bun test tests/unit/dashboard-artifacts.test.js` failed on missing `anchor-evidence-v1` evidence metadata in `vertical-slice-dashboard-anchor-hardening.json`.
+  - GREEN: `bun test tests/unit/dashboard-artifacts.test.js` passed: 3 tests, 1107 assertions.
+  - REFACTOR/browser: `PORT=3212 bun run test:browser -- tests/browser/dashboard-artifacts.spec.js` passed after selector cleanup.
+  - Broader unit/API: `bun run test` passed: 63 tests.
+  - Broader browser: `PORT=3212 bun run test:browser` passed: 45 tests, 1 live OpenAI test skipped by default.
+- Current blocker:
+  - None for Pass 1. Next pass should start `IMPLEMENTATION_PLAN.md` Pass 2, Date and Timezone Contract.
+
+## Pass 2: Date and Timezone Contract (complete)
+
+- Capability: Anchor now resolves daily state through one user-local date contract instead of relying on PostgreSQL `current_date` in daily routes.
+- Source of truth: authenticated `user_profiles.timezone` is preferred; `users.timezone` is the fallback; explicit request timezone is only used as a fallback before profile timezone exists.
+- Date behavior: supported daily routes accept optional `date=YYYY-MM-DD`; omitted dates are derived from the resolved timezone and server clock using `Intl.DateTimeFormat`.
+- Shared helper: `server/dates.js` validates real calendar dates, validates IANA timezones, resolves timezone precedence, and derives user-local dates across timezone/DST boundaries.
+- Wired daily surfaces:
+  - `GET /api/app/bootstrap`
+  - `POST /api/onboarding/routines`
+  - `POST /api/today/anchors/:id/complete`
+  - `POST /api/today/reset`
+  - `GET /api/today/focus-plan`
+  - `POST /api/today/focus-plan`
+- Persistence: `server/db.js` now receives explicit `localDate` options for routine instances, daily plans, and daily focus plans while preserving backward-compatible direct method calls.
+- Tests:
+  - RED: `bun test tests/unit/date-contract.test.js tests/api/pass2-timezone-contract.test.js` failed on missing `server/dates.js` and missing route-to-DB date options.
+  - GREEN targeted: `bun test tests/unit/date-contract.test.js tests/api/pass2-timezone-contract.test.js` passed: 6 tests, 3 SQL tests skipped without `TEST_DATABASE_URL`.
+  - GREEN SQL-backed: `createdb anchor_pass2_timezone_test && TEST_DATABASE_URL=postgres://localhost:5432/anchor_pass2_timezone_test bun test tests/api/pass2-timezone-contract.test.js` passed: 3 tests; disposable DB was dropped afterward.
+  - Broader unit/API: `bun run test` passed: 69 tests, 3 SQL tests skipped without `TEST_DATABASE_URL`.
+  - Broader browser: `PORT=3212 bun run test:browser` passed: 45 tests, 1 live OpenAI test skipped by default.
+- Current blocker:
+  - None for Pass 2. Next pass should start `IMPLEMENTATION_PLAN.md` Pass 3, Canonical `GET /api/today`.
+
+## Wayfinding, Focus Plan, and Midday Anchor (complete)
+
+- Frontend: `public/index.html` now turns the post-Morning result into an action panel with `Pick focus`, `Go to Midday anchor`, `Practice a skill`, and `Reset today` buttons instead of passive next-step text.
+- UX copy: the result now says `Pick one focus and make a cope-ahead plan.` and explains that cope ahead means choosing a likely hard moment and deciding the skill or support step before it happens.
+- Today: the guided `Today` view includes a Morning/Midday/Evening progress rail and renders the saved focus/cope-ahead plan when present.
+- Focus plan: a new inline `Focus and cope-ahead plan` surface saves one focus, likely hard moment, and planned skill/support step through authenticated `GET/POST /api/today/focus-plan` routes.
+- Midday: a new guided `Midday` view records mood, urge, energy, and note, posts a `midday` quick check-in, completes the stored Midday routine instance, and returns users to Today, Reset, or Skills.
+- Navigation: guided views now use hash routes such as `#today`, `#check-in`, `#focus-plan`, and `#midday`, so browser Back/Forward restores the right Anchor surface after authentication.
+- Database: `daily_focus_plans` stores one focus plan per user/day and is included in bootstrap/today state; privacy deletion removes focus plans with other user-owned product data.
+- Tests:
+  - `bun run db:reset` passed.
+  - `bun run test` passed: 60 unit/API tests.
+  - `PORT=3212 bun run test:browser -- tests/browser/pass3-check-in.spec.js` passed: 6 Playwright tests.
+  - `PORT=3212 bun run test:browser` passed: 44 Playwright tests, 1 live OpenAI test skipped.
+  - Manual smoke at `http://127.0.0.1:3210` passed for create account, routine setup, Morning result actions, focus plan save, Midday completion, Today progress rail, and console-clean load.
+- Current blocker:
+  - None.
+
 ## Session Shell, Navigation, and Guided UX (complete)
 
 - Frontend: `public/index.html` now starts in a checking-session state, adds a semantic authenticated shell with primary navigation, menu control, logout button, and a guided `Today` view.
@@ -174,6 +236,7 @@
 
 ## Pass 6: Skills Library and Guided Exercise (complete)
 
+- Evidence label: `prototype` for guided exercise timing. Skill sessions can be started/completed and logged, but the timer is a static running state rather than a real timed exercise.
 - Frontend: `public/index.html` now includes a Skills Library section that appears after routine setup.
 - UI: users can browse seeded DBT skills, filter by module, search already-loaded skills, open a skill detail, start an exercise, and submit helpfulness.
 - CSS: `public/css/app.css` styles module tabs, skill cards, skill detail, and exercise controls in the existing vertical-slice card system.
@@ -201,6 +264,7 @@
 
 ## Pass 7: Text Coach with Safety Gate (complete)
 
+- Evidence label: `prototype`. Text Coach is deterministic local prototype behavior with safety gating; production-grade specialist orchestration remains deferred to the V1 completion plan.
 - Frontend: `public/index.html` now includes a Text Coach section that appears after routine setup.
 - UI: users can choose a coach mode, send one text message, receive a short structured reply with next action, and see the specialist used.
 - Safety UI: elevated and acute messages render Coach Safety Mode instead of normal coaching; acute mode disables the coach controls for the session.
@@ -227,30 +291,37 @@
   - None for Pass 7.
   - Continue with Chain Analysis only; do not start voice, insights, exports, privacy controls, offline sync, notifications, or PWA hardening.
 
-## Pass 8-13: Final Vertical Slices (complete)
+## Pass 8-13: Final Vertical Slices (prototype-complete walking skeleton)
+
+- Evidence summary: Pass 8-13 surfaces are browser/API reachable as a walking skeleton. Several controls remain `prototype`, `settings-only`, `demo-fixture`, or `blocked` as noted below; they should not be treated as V1-complete product behavior.
 
 - Pass 8 Chain Analysis:
   - Frontend: `public/index.html` now includes draft creation and completion forms for prompting event, vulnerabilities, links, consequences, alternatives, and prevention plan.
   - Bun API: `POST /api/chain-analyses`, `PATCH /api/chain-analyses/:id`.
   - Database: `chain_analyses` stores structured JSON sections, status, source refs, prevention plan, and ownership.
 - Pass 9 Live Voice Coach:
+  - Evidence label: `prototype` for the default/local voice flow. The opt-in OpenAI Realtime test path is separately verified, but fuller V1 controls such as mute/reconnect/listening state remain deferred.
   - Frontend: local voice-session surface supports Do Not Save, transcript preview status, start, and end controls.
   - Bun API: `POST /api/voice/client-secret`, `POST /api/voice/sessions/:id/end`.
   - Database: `voice_sessions` stores session metadata, retention flags, transcript opt-in, and summary only when opted in.
   - Safety/privacy: route returns deterministic local client-secret placeholder only; no `OPENAI_API_KEY`, real OpenAI call, or raw audio storage.
 - Pass 10 Insights and Weekly Review:
+  - Evidence label: `demo-fixture`. Insights and weekly review are deterministic seeded-demo synthesis; date-current derived analytics remain deferred.
   - Frontend: Insights and Weekly Review surface renders structure score, evidence-linked insight card, and weekly recommendation.
   - Bun API: `GET /api/insights`, `GET /api/weekly-review/:weekStart`.
   - Database: `weekly_reviews` stores weekly summary arrays and evidence refs; insights are deterministic synthesis for this slice.
 - Pass 11 Session Prep Export:
+  - Evidence label: `prototype` with partial `verified` backend artifact behavior. Authenticated JSON export artifacts are implemented; clinician-ready PDF and scoped therapist share links are deferred or blocked pending Gate 0 decisions.
   - Frontend: packet generation supports diary, skills, chain-analysis section toggles, redaction toggle, status, and local download link.
   - Bun API: `POST /api/session-packets`, `GET /api/session-packets/:id`.
   - Database: `session_packets` stores date range, included sections, redactions, share mode, and status.
 - Pass 12 Privacy, Retention, and Data Controls:
+  - Evidence label: `prototype`. Current privacy controls are reachable, but V1-complete deletion requires recent-auth, full data ownership matrix coverage, session invalidation proof, and retention policy decisions.
   - Frontend: privacy settings, export request, and confirmed delete request flows are browser reachable.
   - Bun API: `PATCH /api/me/settings`, `POST /api/privacy/export`, `POST /api/privacy/delete-request`.
   - Database: `user_settings`, `privacy_exports`, and `delete_requests` persist retention, export, and scheduled deletion records.
 - Pass 13 Notifications, Offline Capture, and PWA Hardening:
+  - Evidence labels: `settings-only` for notifications, `demo-fixture` for offline capture, and partial `verified` for app-shell registration/cache behavior. Notification settings are saved only; no browser permission, push subscription, or delivery path is implemented. Offline queue UI is a synthetic mutation sync tester, not automatic capture of real user actions.
   - Frontend: notification opt-in, quiet hours, client mutation id, and offline queue sync flows are browser reachable.
   - Bun API: `POST /api/sync/offline-queue` plus settings reuse for notification preferences.
   - Database: `offline_mutations` persists idempotent client mutations and rejects duplicates.
@@ -272,6 +343,7 @@
 
 ## Production Hardening: Private Beta (complete)
 
+- Evidence labels: `verified` for implemented private-beta mechanics; `blocked` for clinical/legal review and deployment provisioning with real production secrets. The hardening mechanics are implemented and locally tested, but this is not a public-launch signoff.
 - Security and production config:
   - `server/config.js` validates required production env vars for private beta.
   - API responses now include `x-request-id`.
@@ -315,6 +387,7 @@
 
 ## Live OpenAI Full-Function Test Slice (complete)
 
+- Evidence label: `verified` for the opt-in live OpenAI Realtime test path. This does not make all V1 voice controls complete; mute/reconnect/listening-state product controls remain tracked in `IMPLEMENTATION_PLAN.md`.
 - Frontend usability: Live Voice Coach now exposes a visible `Use real OpenAI voice agent` checkbox. It is enabled when `/api/config/public` reports `OPENAI_API_KEY` availability on the backend, giving users a clear way to turn the real Realtime agent on for a session.
 - Frontend: `public/js/app.js` supports explicit live WebRTC mode with real `RTCPeerConnection`, generated/fake browser audio capture in Playwright, SDP answer application, Realtime data-channel event tracking, and voice cleanup on end.
 - Bun API/config: `OPENAI_REALTIME_LIVE_TEST=1` or `FORCE_REALTIME_NETWORK=1` enables real Realtime network calls without requiring `APP_ENV=production`; default local/test behavior remains deterministic.
@@ -336,6 +409,7 @@
 
 ## Returning User Auth and Password Reset Slice (complete)
 
+- Evidence labels: `verified` for returning-user auth and the local/dev reset-code flow; `deferred` for production email delivery.
 - Frontend: first screen now uses a semantic Account Access region with `Sign in` and `Create account` modes, explicit new-account consent, native `<dialog>` password reset, and calm transitions with reduced-motion support.
 - Returning users: `GET /api/app/bootstrap` lets the browser resume saved state after sign-in or page reload, revealing consent completion, onboarding, or the main app based on server state.
 - Password reset: local/test/dev flow creates one-time reset codes, stores only hashed reset tokens, locks tokens after repeated bad attempts, updates the password, consumes the token, and invalidates existing sessions. Production responses do not expose reset codes.

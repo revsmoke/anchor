@@ -1,0 +1,8 @@
+- [x] Confirm repository structure and locate requested files/artifacts.
+- [x] Inspect `CAPABILITY_LEDGER.md` for claimed-complete capabilities and test evidence.
+- [x] Inspect `tests/unit`, `tests/api`, and `tests/browser` for meaningful behavioral coverage versus text-only assertions.
+- [x] Inspect Playwright configs for browser test scope, projects, servers, and gaps.
+- [x] Inspect `README.md`, `context_history`, and vertical-slice JSON artifacts for dashboard/ledger drift.
+- [x] Draft red/green/refactor test plan items for the next implementation plan.
+- [x] Write final QA report to `review/agent-qa-report.md` under 500 lines.
+- [x] Re-read report and plan for consistency, then mark plan complete.

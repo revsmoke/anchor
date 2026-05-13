@@ -144,17 +144,19 @@ The current app is a prototype single-page workflow with a guided app shell. Aft
 2. For a new account, check the crisis, privacy, and voice consent boxes, then save consent.
 3. For a returning account, sign in with the same email and password; Anchor resumes onboarding or the main app based on saved state.
 4. Complete routine setup with wake/sleep times, therapy status, goals, hard moments, and anchor times.
-5. Use `Today` to review anchors and choose the next action.
-6. Open `Check-in` to save a morning quick check-in.
-7. Open `Reset` to reduce the day to a workable plan.
-8. Open `Diary` to complete emotions, urges, skills, and notes.
-9. Open `Skills` to practice DBT skills and compare before/after ratings.
-10. Open `Coach` for prototype DBT coaching prompts.
-11. Open `Chain` for chain analysis with prompting event, vulnerabilities, links, consequences, and repair plan.
-12. Open `Voice` for local or real OpenAI Realtime voice.
-13. Open `Insights` for insights and weekly review data.
-14. Open `Exports` and `Privacy` for session-prep exports, privacy exports, delete requests, and deletion execution.
-15. Open `Offline` for supported local queue workflows.
+5. Use `Today` to review the Morning, Midday, and Evening progress rail and choose the next action.
+6. Open `Check-in` to save a morning quick check-in. After it is saved, use the action panel to pick a focus, go to Midday, practice a skill, or reset today.
+7. Open `Focus` to save one focus, one likely hard moment, and the skill or support step you will use before it happens. Anchor calls this a cope-ahead plan and shows the saved plan on `Today`.
+8. Open `Midday` after Morning is complete to save a lightweight status check with mood, urge, energy, and a note.
+9. Open `Reset` to reduce the day to a workable plan.
+10. Open `Diary` to complete emotions, urges, skills, and notes.
+11. Open `Skills` to practice DBT skills and compare before/after ratings.
+12. Open `Coach` for prototype DBT coaching prompts.
+13. Open `Chain` for chain analysis with prompting event, vulnerabilities, links, consequences, and repair plan.
+14. Open `Voice` for local or real OpenAI Realtime voice.
+15. Open `Insights` for insights and weekly review data.
+16. Open `Exports` and `Privacy` for session-prep exports, privacy exports, delete requests, and deletion execution.
+17. Open `Offline` for supported local queue workflows.
 
 ## Account Access
 
@@ -174,9 +176,14 @@ When a returning user loads the app, Anchor first shows `Checking your Anchor se
 After login, the authenticated shell includes:
 
 - `Today`: the default guided view with anchors and suggested next steps.
+- `Check-in`: the Morning anchor quick check-in. Completing it marks Morning complete and changes the next waypoint to Midday.
+- `Focus`: the focus and cope-ahead plan. Use it to choose one focus, name a likely hard moment, and pick the skill or support step to use before that moment happens.
+- `Midday`: a lightweight anchor check with mood, urge, energy, and note fields. Completing it marks Midday complete and offers Reset, Skills, or a return to Today.
 - Primary navigation: one active product section is visible at a time.
 - `Menu`: compact navigation control for smaller screens.
 - `Log out`: clears the current session cookie and returns to the Sign in screen without deleting account data.
+
+Guided views use URL hashes such as `#today`, `#check-in`, `#focus-plan`, `#midday`, `#reset`, and `#skills`. Browser Back and Forward move between Anchor views after you navigate inside the app, so users can return from Midday to the completed Morning result or back to Today without losing the session.
 
 The service worker uses a network-first app-shell strategy for HTML, CSS, JavaScript, and manifest files, then falls back to cached files when offline. API responses are not cached.
 
@@ -227,8 +234,8 @@ If `Use real OpenAI voice agent` is disabled, the server does not currently repo
 
 Anchor currently has two agent-style surfaces:
 
-- Text Coach: a prototype DBT coaching flow that accepts a goal, context, and risk tier. It uses the app safety gate before returning coaching output.
-- Live Voice Coach: the OpenAI Realtime-backed voice agent path described above.
+- Text Coach: `prototype` deterministic DBT coaching behavior that accepts a goal, context, and risk tier. It uses the app safety gate before returning coaching output; production-grade specialist orchestration remains deferred.
+- Live Voice Coach: the OpenAI Realtime-backed voice agent path described above. The opt-in live OpenAI path is `verified`; fuller V1 controls such as mute, reconnect, and listening-state UI remain deferred.
 
 The text coach should be treated as prototype product behavior. The live voice coach is the main OpenAI-backed interactive agent feature in this repo.
 
@@ -241,7 +248,9 @@ Anchor can generate JSON artifacts for:
 
 Exports are generated on the backend and served through authenticated download routes. Redaction rules are tested so fields marked as redacted do not appear in generated artifacts.
 
-Privacy deletion execution removes user-owned product data, voice summaries/transcripts, export artifacts, packet artifacts, offline mutations, and session data while retaining minimal deletion audit metadata.
+Evidence label: `prototype` with partial `verified` backend artifact behavior. Authenticated JSON export artifacts are implemented; clinician-ready PDF and scoped therapist share links are deferred or blocked pending Gate 0 decisions in `IMPLEMENTATION_PLAN.md`.
+
+Privacy deletion execution exists for current product tables/artifacts, but V1-complete deletion requires recent-auth, full data ownership matrix coverage, session invalidation proof, and retention policy decisions.
 
 ## Offline And PWA
 
@@ -249,8 +258,9 @@ Anchor includes a PWA manifest and service worker.
 
 - The app shell can be cached for offline loading.
 - Sensitive API responses are not cached.
-- Offline queue support covers quick check-ins, diary entries, routine completion, and chain-analysis drafts.
-- Queued mutations sync through `/api/sync/offline-queue`.
+- Notification settings are `settings-only`: preferences and quiet hours are saved, but browser permission, push subscription, scheduling, and delivery are not implemented yet.
+- Offline queue support is currently a `demo-fixture`: the UI exercises a synthetic mutation sync path, not automatic capture of real check-ins, diary entries, routine completions, or chain-analysis drafts.
+- Queued demo mutations sync through `/api/sync/offline-queue`.
 - Help Now/crisis resources remain visible in the offline app shell.
 
 ## Testing
@@ -351,7 +361,9 @@ Then inspect Playwright output and browser console failures.
 
 ## Production-Hardening Notes
 
-The current target is private beta hardening. Production mode requires explicit environment configuration, secure cookies, CSRF protection on cookie-authenticated mutating routes, request ids on API responses, redacted logs/errors, authenticated export downloads, deletion execution, PWA app-shell caching, audit events, and readiness checks.
+Private-beta hardening has been implemented locally. Current work is V1 truthfulness and completion gaps tracked in `IMPLEMENTATION_PLAN.md`.
+
+Production mode requires explicit environment configuration, secure cookies, CSRF protection on cookie-authenticated mutating routes, request ids on API responses, redacted logs/errors, authenticated export downloads, deletion execution, PWA app-shell caching, audit events, and readiness checks.
 
 Run this before private-beta verification:
 

@@ -684,6 +684,71 @@ function layerColor(li) { return LAYER_COLORS[li % LAYER_COLORS.length]; }
 
 const DEFAULT_STATE = {
   "projectName": "Anchor Production Hardening",
+  "evidence": {
+    "schemaVersion": "anchor-evidence-v1",
+    "updatedAt": "2026-05-12",
+    "purpose": "Preserve SPEC dashboard statuses while labeling prototype, fixture, settings-only, blocked, and verified surfaces for Pass 1 truthfulness.",
+    "labels": [
+      {
+        "label": "verified",
+        "surfaces": [
+          "private-beta security mechanics",
+          "authenticated JSON export download route",
+          "service worker registration",
+          "opt-in live OpenAI Realtime test path",
+          "returning-user auth and local/dev password reset"
+        ],
+        "evidence": [
+          "CAPABILITY_LEDGER.md",
+          "review/agent-qa-report.md"
+        ]
+      },
+      {
+        "label": "prototype",
+        "surfaces": [
+          "text coach deterministic local replies",
+          "voice controls without full mute/reconnect/listening UI",
+          "privacy controls without complete V1 recent-auth/delete matrix",
+          "skill timer static running state"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md",
+          "review/agent-backend-report.md"
+        ]
+      },
+      {
+        "label": "settings-only",
+        "surfaces": [
+          "notifications preferences and quiet hours without browser permission, push subscription, or delivery"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md"
+        ]
+      },
+      {
+        "label": "demo-fixture",
+        "surfaces": [
+          "offline capture synthetic mutation tester",
+          "insights and exports using April 2026 seeded demo dates"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md"
+        ]
+      },
+      {
+        "label": "blocked",
+        "surfaces": [
+          "therapist sharing share links",
+          "passcode app lock",
+          "clinical/legal review gates",
+          "production deployment provisioning"
+        ],
+        "evidence": [
+          "IMPLEMENTATION_PLAN.md Gate 0"
+        ]
+      }
+    ]
+  },
   "passes": [
     {
       "name": "Security and Production Config",
@@ -720,6 +785,10 @@ const DEFAULT_STATE = {
     {
       "name": "Session Shell Navigation and Guided UX",
       "note": "Checking-session bootstrap, authenticated nav/menu/logout, network-first app shell cache, and one-section-at-a-time guided product flow."
+    },
+    {
+      "name": "Wayfinding, Focus Plan, and Midday Anchor",
+      "note": "Actionable Morning result, Today progress rail, focus/cope-ahead plan, Midday anchor check-in, and hash-based Back/Forward navigation."
     }
   ],
   "layers": [
@@ -809,6 +878,12 @@ const DEFAULT_STATE = {
         "subtasks": [
           "Show one product section at a time."
         ]
+      },
+      {
+        "description": "Add Today progress rail, actionable Morning result controls, Focus view, and Midday view.",
+        "subtasks": [
+          "Keep one guided task surface visible at a time."
+        ]
       }
     ],
     [
@@ -864,6 +939,12 @@ const DEFAULT_STATE = {
         "description": "Own session boot state, no-store API fetches, guided section routing, menu toggling, and logout behavior in vanilla JS.",
         "subtasks": [
           "Keep auth hidden while bootstrap is pending."
+        ]
+      },
+      {
+        "description": "Wire focus-plan save, Midday check-in/completion, anchor progress rendering, and hash-route Back/Forward behavior.",
+        "subtasks": [
+          "Honor valid hashes after authenticated bootstrap."
         ]
       }
     ],
@@ -921,6 +1002,12 @@ const DEFAULT_STATE = {
         "subtasks": [
           "Do not add new session persistence semantics."
         ]
+      },
+      {
+        "description": "Expose authenticated focus-plan read/write routes and keep Midday on existing check-in plus anchor-completion APIs.",
+        "subtasks": [
+          "Validate required focus fields server-side."
+        ]
       }
     ],
     [
@@ -976,6 +1063,12 @@ const DEFAULT_STATE = {
         "description": "No schema change; use existing sessions, bootstrap data, anchors, and daily plan state.",
         "subtasks": [
           "Logout clears the session only."
+        ]
+      },
+      {
+        "description": "Create daily_focus_plans keyed by user and date and include focus plan in bootstrap state.",
+        "subtasks": [
+          "Delete focus plans during privacy deletion."
         ]
       }
     ],
@@ -1033,6 +1126,12 @@ const DEFAULT_STATE = {
         "subtasks": [
           "Sensitive API responses remain uncached."
         ]
+      },
+      {
+        "description": "Keep DBT cope-ahead language but explain it plainly and preserve safety-mode handling for elevated Midday/check-in responses.",
+        "subtasks": [
+          "No external AI call is added for this slice."
+        ]
       }
     ],
     [
@@ -1089,6 +1188,12 @@ const DEFAULT_STATE = {
         "subtasks": [
           "Run db reset, bun test, browser tests, and manual 3210 smoke."
         ]
+      },
+      {
+        "description": "Cover actionable Morning result, focus-plan save/bootstrap, Midday completion, hash history, and full browser regression.",
+        "subtasks": [
+          "Run db reset, bun test, browser tests, and manual 3210 smoke."
+        ]
       }
     ]
   ],
@@ -1102,31 +1207,11 @@ const DEFAULT_STATE = {
       "done",
       "done",
       "done",
-      "done"
-    ],
-    [
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
       "done",
       "done"
     ],
     [
       "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-      "done"
-    ],
-    [
       "done",
       "done",
       "done",
@@ -1146,9 +1231,35 @@ const DEFAULT_STATE = {
       "done",
       "done",
       "done",
+      "done",
       "done"
     ],
     [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done",
+      "done"
+    ],
+    [
+      "done",
       "done",
       "done",
       "done",

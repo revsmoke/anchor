@@ -35,9 +35,9 @@ test("live OpenAI full-function seeded prototype workflow works in the browser",
   await expect(page.getByText("Your three anchors are ready.")).toBeVisible();
 
   await page.getByRole("button", { name: "Check-in", exact: true }).click();
-  await page.getByLabel("Mood").selectOption("2");
-  await page.getByLabel("Primary urge").selectOption("1");
-  await page.getByLabel("Energy").selectOption("medium");
+  await page.locator("#check-in-section").getByLabel("Mood").selectOption("2");
+  await page.locator("#check-in-section").getByLabel("Primary urge").selectOption("1");
+  await page.locator("#check-in-section").getByLabel("Energy").selectOption("medium");
   await page.getByLabel("Check-in note").fill("Generated live browser check-in.");
   await page.getByRole("button", { name: "Save check-in and complete morning anchor" }).click();
   await expect(page.getByText("Morning anchor complete.")).toBeVisible();

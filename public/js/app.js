@@ -44,6 +44,11 @@ const routineResultEl = document.querySelector("#routine-result");
 const anchorListEl = document.querySelector("[data-testid='anchor-list']");
 const nextBestStepEl = document.querySelector("#next-best-step");
 const todaySection = document.querySelector("#today-section");
+const anchorProgressEl = document.querySelector("#anchor-progress");
+const focusPlanSummaryEl = document.querySelector("#focus-plan-summary");
+const focusSummaryFocusEl = document.querySelector("#focus-summary-focus");
+const focusSummaryMomentEl = document.querySelector("#focus-summary-moment");
+const focusSummarySkillEl = document.querySelector("#focus-summary-skill");
 const checkInSection = document.querySelector("#check-in-section");
 const checkInForm = document.querySelector("#check-in-form");
 const checkInErrorEl = document.querySelector("#check-in-error");
@@ -53,6 +58,19 @@ const suggestedActionEl = document.querySelector("#suggested-action");
 const completionNextStepEl = document.querySelector("#completion-next-step");
 const safetyModeEl = document.querySelector("#safety-mode");
 const safetyModeMessageEl = document.querySelector("#safety-mode-message");
+const focusPlanSection = document.querySelector("#focus-plan-section");
+const focusPlanForm = document.querySelector("#focus-plan-form");
+const focusTextEl = document.querySelector("#focus-text");
+const anticipatedHardMomentEl = document.querySelector("#anticipated-hard-moment");
+const plannedSkillEl = document.querySelector("#planned-skill");
+const focusPlanErrorEl = document.querySelector("#focus-plan-error");
+const focusPlanStatusEl = document.querySelector("#focus-plan-status");
+const middaySection = document.querySelector("#midday-section");
+const middayForm = document.querySelector("#midday-form");
+const middayErrorEl = document.querySelector("#midday-error");
+const middayStatusEl = document.querySelector("#midday-status");
+const middayResultEl = document.querySelector("#midday-result");
+const middayNextStepEl = document.querySelector("#midday-next-step");
 const resetSection = document.querySelector("#reset-section");
 const resetForm = document.querySelector("#reset-form");
 const resetErrorEl = document.querySelector("#reset-error");
@@ -153,6 +171,8 @@ const offlineErrorEl = document.querySelector("#offline-error");
 const offlineStatusEl = document.querySelector("#offline-status");
 
 let morningAnchorId = "";
+let middayAnchorId = "";
+let todayAnchors = [];
 let allSkills = [];
 let activeSkill = null;
 let activeSkillStartedAt = "";
@@ -169,6 +189,8 @@ let currentView = "today";
 const guidedSections = {
   today: { element: todaySection, label: "Today" },
   "check-in": { element: checkInSection, label: "Check-in" },
+  "focus-plan": { element: focusPlanSection, label: "Focus Plan" },
+  midday: { element: middaySection, label: "Midday" },
   reset: { element: resetSection, label: "Reset Today" },
   diary: { element: diarySection, label: "Diary Card" },
   skills: { element: skillsSection, label: "Skills" },
@@ -211,8 +233,13 @@ viewTargetButtons.forEach(button => {
     closePrimaryNav();
   });
 });
+window.addEventListener("hashchange", () => {
+  showGuidedView(viewFromHash(), { updateHash: false });
+});
 onboardingForm.addEventListener("submit", saveOnboarding);
 checkInForm.addEventListener("submit", saveQuickCheckIn);
+focusPlanForm.addEventListener("submit", saveFocusPlan);
+middayForm.addEventListener("submit", saveMiddayCheckIn);
 resetForm.addEventListener("submit", saveDayReset);
 diaryForm.addEventListener("submit", saveDiaryCard);
 coachForm.addEventListener("submit", sendCoachMessage);
@@ -544,9 +571,21 @@ function hideGuidedSections() {
   });
 }
 
-function showGuidedView(view) {
+function viewFromHash() {
+  const value = location.hash.replace(/^#/, "");
+  return guidedSections[value] ? value : "";
+}
+
+function showGuidedView(view, { updateHash = true, replaceHash = false } = {}) {
   if (!guidedSections[view]) return;
   currentView = view;
+  if (updateHash && location.hash !== `#${view}`) {
+    if (replaceHash) {
+      history.replaceState({ view }, "", `#${view}`);
+    } else {
+      history.pushState({ view }, "", `#${view}`);
+    }
+  }
   hideGuidedSections();
   const section = guidedSections[view];
   section.element.hidden = false;
@@ -845,19 +884,24 @@ function renderRoutineSetup(setup) {
   onboardingStatusEl.textContent = "";
   routineResultEl.hidden = false;
   anchorListEl.innerHTML = "";
-  morningAnchorId = setup.today.find(anchor => anchor.type === "morning")?.id || "";
+  todayAnchors = setup.today || [];
+  morningAnchorId = todayAnchors.find(anchor => anchor.type === "morning")?.id || "";
+  middayAnchorId = todayAnchors.find(anchor => anchor.type === "midday")?.id || "";
 
-  setup.today.forEach(anchor => {
+  todayAnchors.forEach(anchor => {
     const item = document.createElement("li");
     item.textContent = `${capitalize(anchor.type)} - ${anchor.targetTime}`;
     anchorListEl.append(item);
   });
 
   nextBestStepEl.textContent = setup.dailyPlan.nextBestStep;
-  showGuidedView(currentView || "today");
+  renderAnchorProgress();
+  renderFocusPlan(setup.focusPlan || null);
+  showGuidedView(viewFromHash() || currentView || "today", { replaceHash: true });
   diaryDateEl.value = new Date().toISOString().slice(0, 10);
   checkInResultEl.hidden = true;
   safetyModeEl.hidden = true;
+  middayResultEl.hidden = true;
   resetResultEl.hidden = true;
   diaryResultEl.hidden = true;
   skillDetailEl.hidden = true;
@@ -870,6 +914,51 @@ function renderRoutineSetup(setup) {
   insightsResultEl.hidden = true;
   packetDownloadEl.hidden = true;
   loadSkills();
+}
+
+function renderAnchorProgress() {
+  anchorProgressEl.innerHTML = "";
+  todayAnchors.forEach(anchor => {
+    const item = document.createElement("li");
+    const label = document.createElement("strong");
+    const time = document.createElement("span");
+    const state = document.createElement("span");
+    label.textContent = capitalize(anchor.type);
+    time.textContent = anchor.targetTime;
+    state.className = "anchor-state";
+    state.textContent = anchor.status === "complete"
+      ? "Complete"
+      : nextAnchorType() === anchor.type ? "Current" : "Scheduled";
+    item.append(label, time, state);
+    anchorProgressEl.append(item);
+  });
+}
+
+function nextAnchorType() {
+  return todayAnchors.find(anchor => anchor.status !== "complete")?.type || "evening";
+}
+
+function updateAnchorState(updatedAnchor) {
+  todayAnchors = todayAnchors.map(anchor => anchor.id === updatedAnchor.id ? { ...anchor, ...updatedAnchor } : anchor);
+  renderAnchorProgress();
+}
+
+function renderFocusPlan(focusPlan) {
+  if (!focusPlan) {
+    focusPlanSummaryEl.hidden = true;
+    focusSummaryFocusEl.textContent = "";
+    focusSummaryMomentEl.textContent = "";
+    focusSummarySkillEl.textContent = "";
+    return;
+  }
+
+  focusPlanSummaryEl.hidden = false;
+  focusSummaryFocusEl.textContent = focusPlan.focusText;
+  focusSummaryMomentEl.textContent = focusPlan.anticipatedHardMoment;
+  focusSummarySkillEl.textContent = focusPlan.plannedSkill;
+  focusTextEl.value = focusPlan.focusText;
+  anticipatedHardMomentEl.value = focusPlan.anticipatedHardMoment;
+  plannedSkillEl.value = focusPlan.plannedSkill;
 }
 
 async function saveQuickCheckIn(event) {
@@ -908,12 +997,120 @@ async function saveQuickCheckIn(event) {
       completedAt: new Date().toISOString(),
       checkInId: result.checkIn.id
     });
+    updateAnchorState(completion.anchor);
     renderCheckInComplete(result, completion);
   } catch (error) {
     renderCheckInError(error.message || "Check-in could not be saved.");
   } finally {
     submitButton.disabled = false;
   }
+}
+
+async function saveFocusPlan(event) {
+  event.preventDefault();
+  hideFocusPlanMessages();
+  const formData = new FormData(focusPlanForm);
+  const focusPlan = {
+    focusText: String(formData.get("focusText") || "").trim(),
+    anticipatedHardMoment: String(formData.get("anticipatedHardMoment") || "").trim(),
+    plannedSkill: String(formData.get("plannedSkill") || "").trim()
+  };
+
+  const localError = validateFocusPlan(focusPlan);
+  if (localError) {
+    renderInlineError(focusPlanErrorEl, localError);
+    return;
+  }
+
+  const submitButton = focusPlanForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    const saved = await postJson("/api/today/focus-plan", focusPlan);
+    renderFocusPlan(saved);
+    focusPlanStatusEl.hidden = false;
+    focusPlanStatusEl.textContent = "Focus plan saved.";
+    showGuidedView("today");
+  } catch (error) {
+    renderInlineError(focusPlanErrorEl, error.message || "Focus plan could not be saved.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function validateFocusPlan(focusPlan) {
+  if (!focusPlan.focusText) return "One focus is required.";
+  if (!focusPlan.anticipatedHardMoment) return "Likely hard moment is required.";
+  if (!focusPlan.plannedSkill) return "Skill or support step is required.";
+  return "";
+}
+
+function hideFocusPlanMessages() {
+  focusPlanErrorEl.hidden = true;
+  focusPlanErrorEl.textContent = "";
+  focusPlanStatusEl.hidden = true;
+  focusPlanStatusEl.textContent = "";
+}
+
+async function saveMiddayCheckIn(event) {
+  event.preventDefault();
+  hideMiddayMessages();
+  const formData = new FormData(middayForm);
+  const checkIn = {
+    createdAt: new Date().toISOString(),
+    anchorContext: "midday",
+    primaryEmotionScore: scoreValue(formData.get("primaryEmotionScore")),
+    primaryUrgeScore: scoreValue(formData.get("primaryUrgeScore")),
+    energyState: String(formData.get("energyState") || ""),
+    suggestedNextActionStatus: "accepted",
+    note: String(formData.get("note") || "").trim(),
+    locationContext: ""
+  };
+
+  const localError = validateMiddayCheckIn(checkIn);
+  if (localError) {
+    renderInlineError(middayErrorEl, localError);
+    return;
+  }
+
+  const submitButton = middayForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    const result = await postJson("/api/check-ins", checkIn);
+    if (result.safetyMode) {
+      renderInlineError(middayErrorEl, result.safetyMode.message);
+      return;
+    }
+
+    const completion = await postJson(`/api/today/anchors/${middayAnchorId}/complete`, {
+      completedAt: new Date().toISOString(),
+      checkInId: result.checkIn.id
+    });
+    updateAnchorState(completion.anchor);
+    middayStatusEl.hidden = false;
+    middayStatusEl.textContent = "Midday anchor complete.";
+    middayResultEl.hidden = false;
+    middayNextStepEl.textContent = completion.nextBestStep;
+  } catch (error) {
+    renderInlineError(middayErrorEl, error.message || "Midday anchor could not be completed.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function validateMiddayCheckIn(checkIn) {
+  if (!Number.isInteger(checkIn.primaryEmotionScore)) return "Midday mood is required.";
+  if (!Number.isInteger(checkIn.primaryUrgeScore)) return "Midday urge is required.";
+  if (!checkIn.energyState) return "Midday energy is required.";
+  if (!middayAnchorId) return "Midday anchor is not ready.";
+  return "";
+}
+
+function hideMiddayMessages() {
+  middayErrorEl.hidden = true;
+  middayErrorEl.textContent = "";
+  middayStatusEl.hidden = true;
+  middayStatusEl.textContent = "";
+  middayResultEl.hidden = true;
 }
 
 function scoreValue(value) {

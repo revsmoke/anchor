@@ -136,6 +136,8 @@ h2 {
 .onboarding-card,
 .today-card,
 .check-in-card,
+.focus-plan-card,
+.midday-card,
 .reset-card,
 .diary-card,
 .skills-card,
@@ -159,6 +161,8 @@ h2 {
 .onboarding-card,
 .today-card,
 .check-in-card,
+.focus-plan-card,
+.midday-card,
 .reset-card,
 .diary-card,
 .skills-card,
@@ -181,7 +185,8 @@ h2 {
 
 .auth-tabs,
 .auth-actions,
-.today-actions {
+.today-actions,
+.result-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -196,6 +201,65 @@ h2 {
 
 .today-actions button {
   flex: 1 1 150px;
+}
+
+.result-actions button {
+  flex: 1 1 150px;
+}
+
+.helper-copy {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.anchor-progress {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.anchor-progress li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.anchor-progress strong,
+.anchor-progress span {
+  min-width: 0;
+}
+
+.anchor-progress strong {
+  font-size: 1rem;
+}
+
+.anchor-progress span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.anchor-progress .anchor-state {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#focus-plan-summary dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+#focus-plan-summary div {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
 }
 
 .auth-tabs button {

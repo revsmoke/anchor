@@ -33,6 +33,8 @@
         <nav id="primary-nav" class="primary-nav" aria-label="Primary">
           <button type="button" data-view-target="today" aria-pressed="true">Today</button>
           <button type="button" data-view-target="check-in" aria-pressed="false">Check-in</button>
+          <button type="button" data-view-target="focus-plan" aria-pressed="false">Focus</button>
+          <button type="button" data-view-target="midday" aria-pressed="false">Midday</button>
           <button type="button" data-view-target="reset" aria-pressed="false">Reset</button>
           <button type="button" data-view-target="diary" aria-pressed="false">Diary</button>
           <button type="button" data-view-target="skills" aria-pressed="false">Skills</button>
@@ -241,8 +243,30 @@
           <p id="next-best-step"></p>
         </div>
 
+        <ol id="anchor-progress" class="anchor-progress" data-testid="anchor-progress" aria-label="Today's anchor progress"></ol>
+
+        <div id="focus-plan-summary" class="routine-result" hidden>
+          <h3>Focus and cope-ahead plan</h3>
+          <dl>
+            <div>
+              <dt>Focus</dt>
+              <dd id="focus-summary-focus"></dd>
+            </div>
+            <div>
+              <dt>Likely hard moment</dt>
+              <dd id="focus-summary-moment"></dd>
+            </div>
+            <div>
+              <dt>Skill or support step</dt>
+              <dd id="focus-summary-skill"></dd>
+            </div>
+          </dl>
+        </div>
+
         <div class="today-actions" aria-label="Suggested next actions">
           <button type="button" data-view-target="check-in">Start check-in</button>
+          <button type="button" data-view-target="focus-plan" class="button-secondary">Pick focus</button>
+          <button type="button" data-view-target="midday" class="button-secondary">Go to Midday anchor</button>
           <button type="button" data-view-target="skills" class="button-secondary">Practice a skill</button>
           <button type="button" data-view-target="voice" class="button-secondary">Open voice</button>
         </div>
@@ -327,7 +351,14 @@
           <div id="check-in-result" class="routine-result" hidden>
             <h3>Anchor result</h3>
             <p id="suggested-action"></p>
+            <p class="helper-copy">Cope ahead means choose one likely hard moment and decide what skill or support step you will use before it happens.</p>
             <p id="completion-next-step"></p>
+            <div class="result-actions" aria-label="Morning anchor next actions">
+              <button type="button" data-view-target="focus-plan">Pick focus</button>
+              <button type="button" data-view-target="midday" class="button-secondary">Go to Midday anchor</button>
+              <button type="button" data-view-target="skills" class="button-secondary">Practice a skill</button>
+              <button type="button" data-view-target="reset" class="button-secondary">Reset today</button>
+            </div>
           </div>
 
           <section id="safety-mode" class="safety-mode" aria-labelledby="safety-mode-heading" hidden>
@@ -338,6 +369,99 @@
               <a href="sms:988">Call or text 988</a>
             </div>
           </section>
+        </form>
+      </section>
+
+      <section class="focus-plan-card" id="focus-plan-section" aria-labelledby="focus-plan-heading" hidden>
+        <div>
+          <p class="section-label">Morning next step</p>
+          <h2 id="focus-plan-heading">Focus and cope-ahead plan</h2>
+          <p class="boundary">Pick one focus, name one likely hard moment, and choose the skill or support step you will use before it happens.</p>
+        </div>
+
+        <form id="focus-plan-form" class="consent-form" novalidate>
+          <label>
+            One focus
+            <input id="focus-text" name="focusText" type="text" maxlength="180" placeholder="email therapist">
+          </label>
+          <label>
+            Likely hard moment
+            <input id="anticipated-hard-moment" name="anticipatedHardMoment" type="text" maxlength="180" placeholder="after lunch energy drop">
+          </label>
+          <label>
+            Skill or support step
+            <input id="planned-skill" name="plannedSkill" type="text" maxlength="180" placeholder="paced breathing before I open messages">
+          </label>
+          <div class="result-actions">
+            <button type="submit">Save focus plan</button>
+            <button type="button" data-view-target="midday" class="button-secondary">Go to Midday anchor</button>
+          </div>
+          <div id="focus-plan-error" class="error" role="alert" hidden></div>
+          <div id="focus-plan-status" class="success" role="status" hidden></div>
+        </form>
+      </section>
+
+      <section class="midday-card" id="midday-section" aria-labelledby="midday-heading" hidden>
+        <div>
+          <p class="section-label">Midday anchor</p>
+          <h2 id="midday-heading">Midday anchor</h2>
+          <p class="boundary">Pause, check the day as it is, and choose whether to continue, reset, or practice a skill.</p>
+        </div>
+
+        <form id="midday-form" class="consent-form" novalidate>
+          <div class="field-grid">
+            <label>
+              Midday mood
+              <select id="midday-mood-score" name="primaryEmotionScore">
+                <option value="">Choose</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Midday urge
+              <select id="midday-urge-score" name="primaryUrgeScore">
+                <option value="">Choose</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Midday energy
+              <select id="midday-energy-state" name="energyState">
+                <option value="">Choose</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Midday note
+            <input id="midday-note" name="note" type="text" maxlength="180" placeholder="One sentence">
+          </label>
+
+          <button type="submit">Complete Midday anchor</button>
+          <div id="midday-error" class="error" role="alert" hidden></div>
+          <div id="midday-status" class="success" role="status" hidden></div>
+          <div id="midday-result" class="routine-result" hidden>
+            <h3>Anchor result</h3>
+            <p id="midday-next-step"></p>
+            <div class="result-actions">
+              <button type="button" data-view-target="today">Back to Today</button>
+              <button type="button" data-view-target="reset" class="button-secondary">Reset Today</button>
+              <button type="button" data-view-target="skills" class="button-secondary">Practice a skill</button>
+            </div>
+          </div>
         </form>
       </section>
 

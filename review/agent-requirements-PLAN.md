@@ -1,0 +1,8 @@
+- [x] Confirm scope and locate relevant requirements/ledger files without touching source code.
+- [x] Read `PRD.md` and extract V1/core functionality requirements.
+- [x] Read `SPEC.md` and extract V1/core functionality requirements.
+- [x] Check any existing capability ledger if present and useful for implementation gaps.
+- [x] Classify each requirement as required, optional/deferred, or ambiguous.
+- [x] Identify likely missing or partially implemented requirements based on docs and ledger only.
+- [x] Write final report under 500 lines at `review/agent-requirements-report.md`.
+- [x] Re-read the report for consistency, line count, and source-code non-modification.

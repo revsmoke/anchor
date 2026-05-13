@@ -13,6 +13,7 @@ import {
   validateCoachMessagePayload,
   validateDeleteExecutionPayload,
   validateDeleteRequestPayload,
+  validateFocusPlanPayload,
   validateOfflineQueuePayload,
   validatePasswordResetConfirmPayload,
   validatePasswordResetRequestPayload,
@@ -35,6 +36,7 @@ import { createRequestId, jsonError, jsonOk } from "./http/response.js";
 import { createArtifactStore, redactPacketPayload } from "./services/export-service.js";
 import { createRealtimeClient } from "./services/realtime.js";
 import { redactAuditMetadata } from "./services/audit.js";
+import { resolveUserLocalDate, resolveUserTimezone } from "./dates.js";
 
 const DEFAULT_PUBLIC_DIR = new URL("../public", import.meta.url).pathname;
 
@@ -43,7 +45,8 @@ export function createApp({
   publicDir = DEFAULT_PUBLIC_DIR,
   config = getServerConfig(),
   realtimeClient = createRealtimeClient(config),
-  artifactStore = createArtifactStore(config)
+  artifactStore = createArtifactStore(config),
+  now = () => new Date()
 } = {}) {
   if (!db) {
     throw new Error("createApp requires a db adapter.");
@@ -96,7 +99,7 @@ export function createApp({
       }
 
       if (request.method === "GET" && url.pathname === "/api/app/bootstrap") {
-        return handleAppBootstrap(db, request);
+        return handleAppBootstrap(db, request, url, now);
       }
 
       if (request.method === "POST" && url.pathname === "/api/onboarding/consent") {
@@ -108,7 +111,7 @@ export function createApp({
       }
 
       if (request.method === "POST" && url.pathname === "/api/onboarding/routines") {
-        return handleRoutines(db, request);
+        return handleRoutines(db, request, url, now);
       }
 
       if (request.method === "POST" && url.pathname === "/api/check-ins") {
@@ -116,7 +119,15 @@ export function createApp({
       }
 
       if (request.method === "POST" && url.pathname === "/api/today/reset") {
-        return handleDayReset(db, request);
+        return handleDayReset(db, request, url, now);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/today/focus-plan") {
+        return handleGetFocusPlan(db, request, url, now);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/today/focus-plan") {
+        return handleSaveFocusPlan(db, request, url, now);
       }
 
       const diaryMatch = url.pathname.match(/^\/api\/diary\/(\d{4}-\d{2}-\d{2})$/);
@@ -210,7 +221,7 @@ export function createApp({
 
       const anchorCompleteMatch = url.pathname.match(/^\/api\/today\/anchors\/([^/]+)\/complete$/);
       if (request.method === "POST" && anchorCompleteMatch) {
-        return handleAnchorComplete(db, request, anchorCompleteMatch[1]);
+        return handleAnchorComplete(db, request, anchorCompleteMatch[1], url, now);
       }
 
       if (request.method === "GET" && url.pathname === "/favicon.ico") {
@@ -461,7 +472,7 @@ async function handleMe(db, request) {
   });
 }
 
-async function handleAppBootstrap(db, request) {
+async function handleAppBootstrap(db, request, url, now) {
   const headers = { "cache-control": "no-store" };
   if (!readSessionToken(request)) {
     return jsonOk({
@@ -474,7 +485,8 @@ async function handleAppBootstrap(db, request) {
 
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
-  const bootstrap = await db.getAppBootstrap(user.id);
+  const dateOptions = await dailyDateOptions(db, user, url, now);
+  const bootstrap = await db.getAppBootstrap(user.id, dateOptions);
 
   return jsonOk({
     ...bootstrap,
@@ -523,7 +535,7 @@ async function handleProfile(db, request) {
   });
 }
 
-async function handleRoutines(db, request) {
+async function handleRoutines(db, request, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
   if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
@@ -537,7 +549,7 @@ async function handleRoutines(db, request) {
     });
   }
 
-  return jsonOk(await db.saveRoutineSetup(user.id, validation.value));
+  return jsonOk(await db.saveRoutineSetup(user.id, validation.value, await dailyDateOptions(db, user, url, now)));
 }
 
 async function handleCheckIn(db, request) {
@@ -578,7 +590,7 @@ async function handleCheckIn(db, request) {
   return jsonOk(data, { status: 201 });
 }
 
-async function handleAnchorComplete(db, request, anchorId) {
+async function handleAnchorComplete(db, request, anchorId, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
 
@@ -591,7 +603,12 @@ async function handleAnchorComplete(db, request, anchorId) {
     });
   }
 
-  const result = await db.completeRoutineInstance(user.id, anchorId, validation.value);
+  const result = await db.completeRoutineInstance(
+    user.id,
+    anchorId,
+    validation.value,
+    await dailyDateOptions(db, user, url, now)
+  );
   if (!result) {
     return jsonError("anchor_not_found", "Anchor could not be found.", {
       status: 404,
@@ -602,7 +619,7 @@ async function handleAnchorComplete(db, request, anchorId) {
   return jsonOk(result);
 }
 
-async function handleDayReset(db, request) {
+async function handleDayReset(db, request, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
 
@@ -615,7 +632,40 @@ async function handleDayReset(db, request) {
     });
   }
 
-  return jsonOk(await db.resetTodayPlan(user.id, validation.value));
+  return jsonOk(await db.resetTodayPlan(user.id, validation.value, await dailyDateOptions(db, user, url, now)));
+}
+
+async function handleGetFocusPlan(db, request, url, now) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  return jsonOk({
+    focusPlan: await db.getTodayFocusPlan(user.id, await dailyDateOptions(db, user, url, now))
+  });
+}
+
+async function handleSaveFocusPlan(db, request, url, now) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const payload = await readJson(request);
+  const validation = validateFocusPlanPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_focus_plan", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  return jsonOk(await db.saveTodayFocusPlan(
+    user.id,
+    validation.value,
+    await dailyDateOptions(db, user, url, now)
+  ), {
+    status: 201
+  });
 }
 
 async function handleDiaryGet(db, request, entryDate) {
@@ -1214,6 +1264,25 @@ async function requireUser(db, request) {
   return db.getSessionUser(token);
 }
 
+async function dailyDateOptions(db, user, url, now) {
+  const profileTimezone = typeof db.getUserDailyTimezone === "function"
+    ? await db.getUserDailyTimezone(user.id)
+    : "";
+  const timezone = resolveUserTimezone({
+    profileTimezone,
+    fallbackTimezone: url.searchParams.get("timezone") || user.timezone || "UTC"
+  });
+
+  return {
+    localDate: resolveUserLocalDate({
+      timezone,
+      dateParam: url.searchParams.get("date") || "",
+      now: now()
+    }),
+    timezone
+  };
+}
+
 function validateCsrfIfNeeded(config, request, url) {
   if (!config.csrfProtection || !["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
     return null;
@@ -1307,7 +1376,7 @@ function classifyRisk(checkIn) {
 
 function actionLabelFor(checkIn) {
   if (checkIn.anchorContext === "morning") {
-    return "Choose one focus and cope ahead.";
+    return "Pick one focus and make a cope-ahead plan.";
   }
 
   if (checkIn.energyState === "low") {

@@ -2,6 +2,7 @@ const REQUIRED_TABLES = [
   "users",
   "sessions",
   "consent_records",
+  "daily_focus_plans",
   "voice_sessions",
   "session_packets",
   "privacy_exports",
