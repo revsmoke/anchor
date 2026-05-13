@@ -25,3 +25,4 @@
 - 2026-05-12: [Anchor Implementation Plan Revision](contexts/2026-05-12_anchor-implementation-plan-revision.md)
 - 2026-05-12: [Anchor Pass 1 Truthful Status and Evidence Baseline](contexts/2026-05-12_anchor-pass1-truthful-status-evidence.md)
 - 2026-05-12: [Anchor Pass 2 Date and Timezone Contract](contexts/2026-05-12_anchor-pass2-date-timezone-contract.md)
+- 2026-05-13: [Anchor Repository Cleanup Checkpoint](contexts/2026-05-13_anchor-repository-cleanup-checkpoint.md)
