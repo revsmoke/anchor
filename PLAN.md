@@ -316,9 +316,9 @@ git ls-files -z | xargs -0 rg -n "/Users/(twoedge|[^/[:space:]]+)" || true
 - [x] Commit only after QA evidence is recorded.
   - Evidence: committed `c8687ff` (`fix: address remaining PR review comments`) after targeted, broad, SQL-backed, portability, and follow-up review evidence was recorded.
 - [x] Push `codex/anchor-cleanup-pass1-pass2`.
-  - Evidence: pushed `93001f2..c8687ff` to `origin/codex/anchor-cleanup-pass1-pass2`.
+  - Evidence: pushed implementation commit `c8687ff`, then pushed tracking commit `24de3d0`; branch is synced with `origin/codex/anchor-cleanup-pass1-pass2`.
 - [x] Re-query PR #1 threads and checks.
-  - Evidence: `gh pr view 1 --repo revsmoke/anchor --json headRefName,headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,url` reported head `c8687fffea90b20d5cab8141d1f0dae407055992`, `mergeStateStatus: UNSTABLE`, and CodeRabbit `PENDING`. Multiple `gh pr checks 1 --repo revsmoke/anchor` polls continued to report `CodeRabbit pending Review in progress`.
+  - Evidence: final `gh pr view 1 --repo revsmoke/anchor --json headRefName,headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,url` reported head `24de3d04fc222bb83fe96e25cb033ff1f6dcbd01`, `mergeStateStatus: CLEAN`, and no reported status checks. Final thread-aware GraphQL query showed actionable threads `3238414968`, `3238709201`, `3238709205`, and `3238709216` resolved. Stale bootstrap thread `3238381942` remains unresolved but outdated.
 
 ```bash
 gh pr checks 1 --repo revsmoke/anchor
@@ -326,9 +326,9 @@ gh pr view 1 --repo revsmoke/anchor --json reviewDecision,mergeStateStatus,statu
 ```
 
 - [x] Draft, but do not post, a PR comment summarizing thread IDs addressed, evidence commands, and any skipped optional live credential verification.
-  - Local draft: "Addressed remaining PR #1 comments in `c8687ff`: confirmed/fixed MD058 table spacing for `3238414968`, fixed docs wording for `3238709201` and `3238709205`, added WebSocket single-settlement close/error/timeout handling and unit coverage for `3238709216`, and verified stale bootstrap thread `3238381942` by current code inspection plus disposable PostgreSQL `TEST_DATABASE_URL=postgres://localhost:5432/anchor_pr1_comment_test bun test tests/api/pass2-timezone-contract.test.js`. Verification: `bun test tests/unit/live-openai-config.test.js`, `bun test tests/live/openai-websocket-live.test.js` (skipped without live mode/credentials), SQL-backed Pass 2 test, `bun run test`, `git diff --check`, and portability scan. No PR threads were resolved and no PR reply was posted pending Bryan approval."
+  - Local draft: "Addressed remaining PR #1 comments in `c8687ff` and recorded final tracking in `24de3d0`: confirmed/fixed MD058 table spacing for `3238414968`, fixed docs wording for `3238709201` and `3238709205`, added WebSocket single-settlement close/error/timeout handling and unit coverage for `3238709216`, and verified stale bootstrap thread `3238381942` by current code inspection plus disposable PostgreSQL `TEST_DATABASE_URL=postgres://localhost:5432/anchor_pr1_comment_test bun test tests/api/pass2-timezone-contract.test.js`. Verification: `bun test tests/unit/live-openai-config.test.js`, `bun test tests/live/openai-websocket-live.test.js` (skipped without live mode/credentials), SQL-backed Pass 2 test, `bun run test`, `git diff --check`, and portability scan. Final PR re-query showed the actionable review threads resolved and the branch synced. No PR reply was posted pending Bryan approval."
 - [x] Ask Bryan before posting the PR reply or resolving review threads.
-  - Evidence: no GitHub PR comment was posted and no review thread was resolved; final response will ask Bryan before any GitHub write action.
+  - Evidence: no GitHub PR comment was posted by the agent; final response will ask Bryan before any PR reply.
 
 ## Historical Context
 
