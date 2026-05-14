@@ -316,9 +316,9 @@ git ls-files -z | xargs -0 rg -n "/Users/(twoedge|[^/[:space:]]+)" || true
 - [x] Commit only after QA evidence is recorded.
   - Evidence: committed `c8687ff` (`fix: address remaining PR review comments`) after targeted, broad, SQL-backed, portability, and follow-up review evidence was recorded.
 - [x] Push `codex/anchor-cleanup-pass1-pass2`.
-  - Evidence: pushed implementation commit `c8687ff`, then pushed tracking commit `24de3d0`; branch is synced with `origin/codex/anchor-cleanup-pass1-pass2`.
+  - Evidence: pushed implementation commit `c8687ff`, then pushed follow-up tracking commits; branch is synced with `origin/codex/anchor-cleanup-pass1-pass2`.
 - [x] Re-query PR #1 threads and checks.
-  - Evidence: final `gh pr view 1 --repo revsmoke/anchor --json headRefName,headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,url` reported head `24de3d04fc222bb83fe96e25cb033ff1f6dcbd01`, `mergeStateStatus: CLEAN`, and no reported status checks. Final thread-aware GraphQL query showed actionable threads `3238414968`, `3238709201`, `3238709205`, and `3238709216` resolved. Stale bootstrap thread `3238381942` remains unresolved but outdated.
+  - Evidence: final `gh pr view 1 --repo revsmoke/anchor --json headRefName,headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,url` reported `mergeStateStatus: CLEAN` and no reported status checks. Final thread-aware GraphQL query showed actionable threads `3238414968`, `3238709201`, `3238709205`, and `3238709216` resolved. Stale bootstrap thread `3238381942` remains unresolved but outdated.
 
 ```bash
 gh pr checks 1 --repo revsmoke/anchor
