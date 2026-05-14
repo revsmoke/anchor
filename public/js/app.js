@@ -122,6 +122,24 @@ const coachSafetyModeEl = document.querySelector("#coach-safety-mode");
 const coachSafetyTitleEl = document.querySelector("#coach-safety-title");
 const coachSafetyMessageEl = document.querySelector("#coach-safety-message");
 const coachGroundingSkillEl = document.querySelector("#coach-grounding-skill");
+const safetySection = document.querySelector("#safety-section");
+const safetyPlanForm = document.querySelector("#safety-plan-form");
+const safetyWarningSignsEl = document.querySelector("#safety-warning-signs");
+const safetyStepsEl = document.querySelector("#safety-steps");
+const safetyContactNameEl = document.querySelector("#safety-contact-name");
+const safetyContactRelationshipEl = document.querySelector("#safety-contact-relationship");
+const safetyContactPhoneEl = document.querySelector("#safety-contact-phone");
+const safetyResourceLabelEl = document.querySelector("#safety-resource-label");
+const safetyResourceValueEl = document.querySelector("#safety-resource-value");
+const safetyPlanErrorEl = document.querySelector("#safety-plan-error");
+const safetyPlanStatusEl = document.querySelector("#safety-plan-status");
+const safetyResourcesEl = document.querySelector("#safety-resources");
+const safetyResourcesListEl = document.querySelector("#safety-resources-list");
+const safetyHelpNowButton = document.querySelector("#safety-help-now");
+const safetyEventErrorEl = document.querySelector("#safety-event-error");
+const safetyEventStatusEl = document.querySelector("#safety-event-status");
+const safetyResolutionForm = document.querySelector("#safety-resolution-form");
+const safetyResolutionNoteEl = document.querySelector("#safety-resolution-note");
 const chainSection = document.querySelector("#chain-section");
 const chainForm = document.querySelector("#chain-form");
 const chainCompleteForm = document.querySelector("#chain-complete-form");
@@ -181,6 +199,7 @@ let activeChainId = "";
 let activeVoiceSessionId = "";
 let activeVoiceConnection = null;
 let activeVoiceUsedRealtime = false;
+let activeSafetyEventId = "";
 let activeDeleteRequestId = "";
 let csrfToken = "";
 let publicConfig = null;
@@ -196,6 +215,7 @@ const guidedSections = {
   diary: { element: diarySection, label: "Diary Card" },
   skills: { element: skillsSection, label: "Skills" },
   coach: { element: coachSection, label: "Coach" },
+  safety: { element: safetySection, label: "Safety" },
   chain: { element: chainSection, label: "Chain Analysis" },
   voice: { element: voiceSection, label: "Voice" },
   insights: { element: insightsSection, label: "Insights" },
@@ -244,6 +264,9 @@ middayForm.addEventListener("submit", saveMiddayCheckIn);
 resetForm.addEventListener("submit", saveDayReset);
 diaryForm.addEventListener("submit", saveDiaryCard);
 coachForm.addEventListener("submit", sendCoachMessage);
+safetyPlanForm.addEventListener("submit", saveSafetyPlan);
+safetyHelpNowButton.addEventListener("click", logHelpNowSafetyEvent);
+safetyResolutionForm.addEventListener("submit", resolveSafetyEpisode);
 chainForm.addEventListener("submit", createChainAnalysis);
 chainCompleteForm.addEventListener("submit", completeChainAnalysis);
 voiceForm.addEventListener("submit", startVoiceSession);
@@ -477,6 +500,9 @@ async function bootstrapAuthenticatedUser({ silent = false, hideAuth = false } =
   try {
     const bootstrap = await getJson("/api/app/bootstrap");
     renderBootstrapState(bootstrap, { hideAuth });
+    if (bootstrap.nextStep === "main_app") {
+      await refreshTodayState({ silent: true });
+    }
     return bootstrap;
   } catch (error) {
     if (!silent) renderAuthError(error.message || "Account state could not be loaded.");
@@ -519,7 +545,8 @@ function renderBootstrapState(bootstrap, { hideAuth = false } = {}) {
   if (bootstrap.nextStep === "main_app") {
     renderRoutineSetup({
       today: bootstrap.today,
-      dailyPlan: bootstrap.dailyPlan || { nextBestStep: "Start your morning anchor." }
+      dailyPlan: bootstrap.dailyPlan || { nextBestStep: "Start your morning anchor." },
+      focusPlan: bootstrap.focusPlan || null
     });
   }
 }
@@ -595,6 +622,9 @@ function showGuidedView(view, { updateHash = true, replaceHash = false } = {}) {
   viewTargetButtons.forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.viewTarget === view));
   });
+  if (view === "safety") {
+    loadSafetyPlan({ silent: true });
+  }
 }
 
 async function logout() {
@@ -760,6 +790,7 @@ async function saveOnboarding(event) {
     await postJson("/api/onboarding/profile", profile);
     const setup = await postJson("/api/onboarding/routines", { anchors });
     renderRoutineSetup(setup);
+    await refreshTodayState({ silent: true });
   } catch (error) {
     renderOnboardingError(error.message || "Routine setup could not be saved.");
   } finally {
@@ -884,20 +915,7 @@ function renderRoutineSetup(setup) {
   onboardingStatusEl.hidden = true;
   onboardingStatusEl.textContent = "";
   routineResultEl.hidden = false;
-  anchorListEl.innerHTML = "";
-  todayAnchors = setup.today || [];
-  morningAnchorId = todayAnchors.find(anchor => anchor.type === "morning")?.id || "";
-  middayAnchorId = todayAnchors.find(anchor => anchor.type === "midday")?.id || "";
-
-  todayAnchors.forEach(anchor => {
-    const item = document.createElement("li");
-    item.textContent = `${capitalize(anchor.type)} - ${anchor.targetTime}`;
-    anchorListEl.append(item);
-  });
-
-  nextBestStepEl.textContent = setup.dailyPlan.nextBestStep;
-  renderAnchorProgress();
-  renderFocusPlan(setup.focusPlan || null);
+  applyTodayState(setup);
   showGuidedView(viewFromHash() || currentView || "today", { replaceHash: true });
   diaryDateEl.value = new Date().toISOString().slice(0, 10);
   checkInResultEl.hidden = true;
@@ -908,6 +926,9 @@ function renderRoutineSetup(setup) {
   skillDetailEl.hidden = true;
   coachThreadEl.hidden = true;
   coachSafetyModeEl.hidden = true;
+  safetyEventStatusEl.hidden = true;
+  safetyEventErrorEl.hidden = true;
+  safetyResolutionForm.hidden = true;
   chainCompleteForm.hidden = true;
   chainPreventionPlanEl.hidden = true;
   voiceEndButton.hidden = true;
@@ -915,6 +936,40 @@ function renderRoutineSetup(setup) {
   insightsResultEl.hidden = true;
   packetDownloadEl.hidden = true;
   loadSkills();
+}
+
+function applyTodayState(setup) {
+  anchorListEl.innerHTML = "";
+  todayAnchors = setup.today || setup.anchors || [];
+  morningAnchorId = todayAnchors.find(anchor => anchor.type === "morning")?.id || "";
+  middayAnchorId = todayAnchors.find(anchor => anchor.type === "midday")?.id || "";
+
+  todayAnchors.forEach(anchor => {
+    const item = document.createElement("li");
+    item.textContent = `${capitalize(anchor.type)} - ${anchor.targetTime}`;
+    anchorListEl.append(item);
+  });
+
+  nextBestStepEl.textContent = setup.dailyPlan?.nextBestStep || setup.nextBestStep || "Start your morning anchor.";
+  renderAnchorProgress();
+  renderFocusPlan(setup.focusPlan || null);
+}
+
+async function refreshTodayState({ silent = false } = {}) {
+  try {
+    const today = await getJson("/api/today");
+    applyTodayState({
+      today: today.anchors,
+      dailyPlan: today.dailyPlan || { nextBestStep: today.nextBestStep || "Start your morning anchor." },
+      focusPlan: today.focusPlan || null
+    });
+    return today;
+  } catch (error) {
+    if (!silent) {
+      currentViewLabelEl.textContent = error.message || "Today could not be refreshed.";
+    }
+    return null;
+  }
 }
 
 function renderAnchorProgress() {
@@ -1565,6 +1620,200 @@ function renderCoachSafetyMode(safetyMode) {
     coachSendButton.dataset.locked = "true";
     coachMessageEl.disabled = true;
     coachModeEl.disabled = true;
+  }
+}
+
+async function loadSafetyPlan({ silent = false } = {}) {
+  if (!safetySection || safetySection.hidden) return;
+  hideSafetyPlanMessages();
+
+  try {
+    const result = await getJson("/api/safety-plan");
+    renderSafetyPlan(result.safetyPlan);
+    await loadOpenSafetyEpisode();
+  } catch (error) {
+    if (!silent) {
+      renderInlineError(safetyPlanErrorEl, error.message || "Safety plan could not be loaded.");
+    }
+  }
+}
+
+async function loadOpenSafetyEpisode() {
+  const result = await getJson("/api/safety-events");
+  const openAcuteEvent = (result.safetyEvents || [])
+    .filter(event => event.riskTier === "acute" && event.resolutionStatus === "open")
+    .sort((left, right) => String(right.detectedAt || "").localeCompare(String(left.detectedAt || "")))[0];
+
+  if (!openAcuteEvent) {
+    if (!activeSafetyEventId) {
+      safetyResolutionForm.hidden = true;
+    }
+    return;
+  }
+
+  activeSafetyEventId = openAcuteEvent.id;
+  safetyResolutionForm.hidden = false;
+  safetyEventStatusEl.hidden = false;
+  safetyEventStatusEl.textContent = "Active safety episode found. Resolve it after support is reached.";
+}
+
+async function saveSafetyPlan(event) {
+  event.preventDefault();
+  hideSafetyPlanMessages();
+  const safetyPlan = safetyPlanFromForm();
+  const localError = validateSafetyPlan(safetyPlan);
+  if (localError) {
+    renderInlineError(safetyPlanErrorEl, localError);
+    return;
+  }
+
+  const submitButton = safetyPlanForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    const result = await putJson("/api/safety-plan", safetyPlan);
+    renderSafetyPlan(result.safetyPlan);
+    safetyPlanStatusEl.hidden = false;
+    safetyPlanStatusEl.textContent = "Safety plan saved.";
+  } catch (error) {
+    renderInlineError(safetyPlanErrorEl, error.message || "Safety plan could not be saved.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+async function logHelpNowSafetyEvent() {
+  hideSafetyEventMessages();
+  if (activeSafetyEventId) {
+    safetyEventStatusEl.hidden = false;
+    safetyEventStatusEl.textContent = "Active safety episode found. Resolve it after support is reached.";
+    safetyResolutionForm.hidden = false;
+    safetyResolutionNoteEl.focus();
+    return;
+  }
+
+  safetyHelpNowButton.disabled = true;
+  try {
+    const result = await postJson("/api/safety-events", {
+      riskTier: "acute",
+      triggerType: "help_now_ui",
+      outcome: "acute_lock",
+      context: { source: "safety_help_now" }
+    });
+    activeSafetyEventId = result.safetyEvent.id;
+    safetyEventStatusEl.hidden = false;
+    safetyEventStatusEl.textContent = "Help Now safety event logged. Normal actions are locked until this is resolved.";
+    safetyResolutionForm.hidden = false;
+    safetyResolutionNoteEl.focus();
+  } catch (error) {
+    renderInlineError(safetyEventErrorEl, error.message || "Safety event could not be logged.");
+  } finally {
+    safetyHelpNowButton.disabled = false;
+  }
+}
+
+async function resolveSafetyEpisode(event) {
+  event.preventDefault();
+  hideSafetyEventMessages({ keepResolution: true });
+  const resolutionNote = safetyResolutionNoteEl.value.trim();
+  if (!activeSafetyEventId) {
+    renderInlineError(safetyEventErrorEl, "Log a Help Now event first.");
+    return;
+  }
+  if (!resolutionNote) {
+    renderInlineError(safetyEventErrorEl, "Resolution note is required.");
+    return;
+  }
+
+  const submitButton = safetyResolutionForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    await putJson(`/api/safety-events/${activeSafetyEventId}/resolution`, {
+      resolutionStatus: "resolved",
+      resolutionNote,
+      resolvedAt: new Date().toISOString()
+    });
+    activeSafetyEventId = "";
+    safetyResolutionForm.hidden = true;
+    safetyResolutionNoteEl.value = "";
+    safetyEventStatusEl.hidden = false;
+    safetyEventStatusEl.textContent = "Safety episode resolved. Normal actions are available again.";
+  } catch (error) {
+    renderInlineError(safetyEventErrorEl, error.message || "Safety episode could not be resolved.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function safetyPlanFromForm() {
+  const contacts = [];
+  if (safetyContactNameEl.value.trim() || safetyContactPhoneEl.value.trim()) {
+    contacts.push({
+      name: safetyContactNameEl.value.trim(),
+      relationship: safetyContactRelationshipEl.value.trim(),
+      phone: safetyContactPhoneEl.value.trim()
+    });
+  }
+
+  return {
+    warningSigns: splitList(safetyWarningSignsEl.value),
+    steps: splitList(safetyStepsEl.value),
+    contacts,
+    crisisResources: [{
+      label: safetyResourceLabelEl.value.trim(),
+      value: safetyResourceValueEl.value.trim()
+    }].filter(resource => resource.label && resource.value)
+  };
+}
+
+function validateSafetyPlan(safetyPlan) {
+  if (!safetyPlan.warningSigns.length) return "At least one warning sign is required.";
+  if (!safetyPlan.steps.length) return "At least one safety step is required.";
+  if (!safetyPlan.crisisResources.length) return "At least one crisis resource is required.";
+  return "";
+}
+
+function renderSafetyPlan(safetyPlan) {
+  const firstContact = safetyPlan.contacts?.[0] || {};
+  const firstResource = safetyPlan.crisisResources?.[0] || {};
+  safetyWarningSignsEl.value = (safetyPlan.warningSigns || []).join(", ");
+  safetyStepsEl.value = (safetyPlan.steps || []).join(", ");
+  safetyContactNameEl.value = firstContact.name || "";
+  safetyContactRelationshipEl.value = firstContact.relationship || "";
+  safetyContactPhoneEl.value = firstContact.phone || "";
+  safetyResourceLabelEl.value = firstResource.label || "Call or text 988";
+  safetyResourceValueEl.value = firstResource.value || "988";
+  renderSafetyResources(safetyPlan.crisisResources || []);
+}
+
+function renderSafetyResources(resources) {
+  safetyResourcesListEl.innerHTML = "";
+  if (!resources.length) {
+    safetyResourcesEl.hidden = true;
+    return;
+  }
+
+  resources.forEach(resource => {
+    const item = document.createElement("li");
+    item.textContent = `${resource.label}: ${resource.value}`;
+    safetyResourcesListEl.append(item);
+  });
+  safetyResourcesEl.hidden = false;
+}
+
+function hideSafetyPlanMessages() {
+  safetyPlanErrorEl.hidden = true;
+  safetyPlanErrorEl.textContent = "";
+  safetyPlanStatusEl.hidden = true;
+  safetyPlanStatusEl.textContent = "";
+}
+
+function hideSafetyEventMessages({ keepResolution = false } = {}) {
+  safetyEventErrorEl.hidden = true;
+  safetyEventErrorEl.textContent = "";
+  safetyEventStatusEl.hidden = true;
+  safetyEventStatusEl.textContent = "";
+  if (!keepResolution && !activeSafetyEventId) {
+    safetyResolutionForm.hidden = true;
   }
 }
 

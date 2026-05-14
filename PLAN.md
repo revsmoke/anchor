@@ -1,3 +1,121 @@
+# Universal Agent-Accessible Tool Layer Execution Plan
+
+> **For agentic workers:** Before executing anything, write or verify this full plan in `PLAN.md` with checkboxes. Then begin execution, checking off each item as completed. Use test-driven development for behavior changes: write failing tests, run them red, implement minimally, run green, then refactor.
+
+## Operating Rules
+
+- [ ] Keep every slice runnable and testable end to end before moving to the next slice.
+- [ ] Update `CAPABILITY_TOOL_MATRIX.md` in the same slice as any capability, route, UI action, or tool change.
+- [ ] Use shared product services for behavior used by both HTTP routes and tools; do not have tools call HTTP handlers.
+- [ ] Preserve existing user/unrelated work in the dirty tree; do not revert files unless Bryan explicitly asks.
+- [ ] Assign subagents for pre-task verification and QA review after each code-writing slice.
+- [ ] At session end, update project history and NotebookLM project memory with changes, tests, risks, and next steps.
+
+## Slice 1: Capability Inventory And Matrix
+
+- [x] Write red/verification checks that prove `CAPABILITY_TOOL_MATRIX.md` exists and contains required columns.
+- [x] Inventory current UI controls/views from `public/index.html` and `public/js/app.js`.
+- [x] Inventory current server route surface from `server/app.js`.
+- [x] Create `CAPABILITY_TOOL_MATRIX.md` with every current capability marked `covered`, `deferred with reason`, `blocked`, or `intentionally_unavailable`.
+- [x] Mark credential/password/reset-code voice handling as `assist_only` or `intentionally_unavailable_for_voice`.
+- [x] Run matrix validation test/check green.
+
+## Slice 2: Canonical Today API And UI Migration
+
+- [x] Add red API tests for `GET /api/today?date=YYYY-MM-DD`: response shape, auth required, user-local date, lazy daily plan/routine creation, no duplicate anchors.
+- [x] Add SQL-backed coverage where `TEST_DATABASE_URL` is available.
+- [x] Extract or reuse a Today service so bootstrap and `/api/today` share behavior.
+- [x] Implement `GET /api/today`.
+- [x] Update Today UI to read from `/api/today` without breaking existing bootstrap.
+- [ ] Add browser test proving Today loads from `/api/today` and updates after check-in, focus plan, reset, and anchor completion.
+  - [x] Added browser coverage proving the Today surface calls `/api/today`.
+  - [ ] Add explicit browser assertions that `/api/today`-backed state stays current after check-in, focus plan, reset, and anchor completion.
+
+## QA Review: Slice 1/Slice 2 Current Implementation — 2026-05-14
+
+- [x] Verify `PLAN.md` contains a scoped checklist before executing the QA review.
+- [x] Review `CAPABILITY_TOOL_MATRIX.md` and `tests/unit/capability-tool-matrix.test.js` for coverage, accuracy, and misleading assertions.
+- [x] Review canonical Today API behavior in `server/app.js`, `server/db.js`, and `tests/api/pass2-timezone-contract.test.js`.
+- [x] Review frontend migration safety in `public/js/app.js` and browser coverage in `tests/browser/pass3-check-in.spec.js`.
+- [x] Run targeted tests that are useful for validating the review.
+- [x] Write concise QA findings, commands, and recommendation to `context_history/contexts/2026-05-14_universal-tool-layer-slice1-slice2-qa.md`.
+- [x] Re-read the QA report and update this checklist for only completed items.
+
+## Slice 3: Safety Plan, Events, And Episodes
+
+- [x] Add red API/SQL tests for `GET|POST|PUT /api/safety-plan`.
+- [x] Add red API/SQL tests for `GET|POST /api/safety-events` and `PUT /api/safety-events/:id/resolution`.
+- [x] Add migration and service methods for normalized support contacts and `safety_episodes`.
+- [x] Implement safety routes through shared safety service.
+- [x] Define acute allowlist: `safety.resources.read`, `safety.plan.read`, `safety.event.append`, `safety.episode.resolve`, `voice.end`, `session.logout`.
+- [x] Add Safety Plan / Help Now UI and browser coverage.
+  - [x] Add red browser test for Safety Plan save, Help Now event append, acute lock visibility, and resolution.
+  - [x] Add signed-in Safety nav/view with persisted plan fields and crisis resources.
+  - [x] Add Help Now event append and episode resolution UI wired to safety event routes.
+  - [x] Run focused browser/API regression coverage green.
+
+## Slice 4: Privacy And Export Retention Gate
+
+- [ ] Update data ownership matrix for sensitive/destructive tool exposure.
+- [ ] Keep privacy delete/export tools discoverable but non-callable until deletion, anonymization, retention, and audit semantics are defined.
+- [ ] Add tests that non-callable privacy tools refuse execution with a clear policy reason.
+
+## Slice 5: Shared Services For Tool-Backed Actions
+
+- [ ] Extract shared services for initial tool-backed actions: today read, check-in, focus plan, anchor completion, safety reads/events.
+- [ ] Refactor HTTP routes to use services after auth/CSRF checks.
+- [ ] Add tests confirming HTTP behavior is unchanged.
+
+## Slice 6: Prompt Resolver Registry
+
+- [ ] Add prompt template/version migration and seeded defaults.
+- [ ] Add prompt lookup service with active version resolution and fallback behavior.
+- [ ] Refactor Realtime/LLM prompt call sites to use registry-backed prompts.
+- [ ] Add tests for active version lookup, missing prompt fallback, and prompt usage metadata.
+- [ ] Mark resolver-only registry as intermediate; final objective requires admin editing.
+
+## Slice 7: Tool Catalog, Manifest, Dispatcher, Security
+
+- [ ] Create `server/tools/catalog.js` as the single source of truth.
+- [ ] Generate contextual `GET /api/tools/manifest` and `GET /api/openapi.json` from the catalog.
+- [ ] Implement `POST /api/tools/call` dispatcher through shared services only.
+- [ ] Enforce cookie auth, CSRF for mutating cookie-authenticated tool calls, per-user/per-tool rate limits, tool eligibility, and consent requirements.
+- [ ] Enforce idempotency for all write tools except append-only safety events using `(user_id, tool_name, idempotency_key)`.
+- [ ] Add `tool_call_logs` with redacted params/result summaries.
+- [ ] Add negative tests for missing service mappings, missing matrix status, and missing destructive/sensitive metadata.
+
+## Slice 8: Live Session-Prep Exports
+
+- [ ] Replace fixed April 2026 UI dates with user-local dynamic ranges.
+- [ ] Default exports to minimal/redacted JSON.
+- [ ] Require explicit include flags for sensitive sections.
+- [ ] Add tests proving excluded sections are absent from generated JSON.
+
+## Slice 9: Admin Prompt Editor And First Admin Bootstrap
+
+- [ ] Add `users.role` and `requireAdmin`.
+- [ ] Add env-gated, audited first-admin bootstrap script disabled by default in production.
+- [ ] Add admin prompt browse/edit/version/activate UI.
+- [ ] Add rollback, diff preview, variable-schema validation, activation audit, and protected prompt classes requiring reviewer approval.
+- [ ] Add security tests for admin authorization, recent auth, and activation confirmation nonce.
+
+## Slice 10: Voice Local Function-Tool Bridge
+
+- [ ] Add tool subset injection for eligible Realtime tools only.
+- [ ] Browser listens for completed function-call events and ignores partial argument deltas until final.
+- [ ] Browser parses final arguments, calls `/api/tools/call`, sends `conversation.item.create` with `item.type = "function_call_output"` and original `call_id`, then sends `response.create`.
+- [ ] Handle malformed JSON, unavailable tools, duplicate `call_id`, timeout, cancellation, and dispatcher failure with redacted tool-output errors tied to original `call_id`.
+- [ ] Add normal, safety, and credential-boundary voice tests.
+
+## Slice 11: Final Parity Pass
+
+- [ ] Re-run capability matrix validation.
+- [ ] Verify every matrix row is `covered`, `deferred with reason`, `blocked`, or `intentionally_unavailable`.
+- [ ] Run full API/unit tests.
+- [ ] Run browser suite or targeted browser suite for touched surfaces.
+- [ ] Run portability and whitespace checks.
+- [ ] Update context history and NotebookLM memory.
+
 # PR #1 Comment Resolution Plan
 
 > **Execution rule:** every implementation agent must start by reading this file, then update the relevant checkbox as work proceeds. Keep edits atomic, test-first where behavior changes, and scoped to the files named in each task.
@@ -333,3 +451,25 @@ gh pr view 1 --repo revsmoke/anchor --json reviewDecision,mergeStateStatus,statu
 ## Historical Context
 
 The prior resolution pass already addressed earlier PR comments in commit `93001f2`, including bootstrap behavior, portability cleanup, Playwright port parsing, password-reset helper guards, and initial voice/live cleanup. This current plan supersedes the older checklist and is the only executable checklist for the remaining active PR comments.
+
+## Slice 3 Pre-task Verification - 2026-05-14
+
+- [x] Inspect current git/diff state without reverting or overwriting others' edits.
+- [x] Review server route and persistence behavior in `server/app.js`, `server/db.js`, and `server/auth/validation.js`.
+- [x] Review UI state, insertion points, and styling in `public/index.html`, `public/js/app.js`, and `public/css/app.css`.
+- [x] Review existing API and browser test coverage in `tests/api` and `tests/browser`.
+- [x] Review Slice 3 scope and tool expectations in `CAPABILITY_TOOL_MATRIX.md` and this `PLAN.md`.
+- [x] Identify exact remaining gaps for acute safety allowlist enforcement.
+- [x] Identify exact remaining gaps for Safety Plan / Help Now UI and browser coverage.
+- [x] Write a concise report under 250 lines at `context_history/contexts/2026-05-14_slice3_pretask_verification.md`.
+- [x] Re-read the report and verify it includes existing route/state behavior, API tests to add first, UI insertion points, browser test flow, and risks.
+
+## Slice 3 QA Review - 2026-05-14
+
+- [x] Assign an independent QA reviewer after code-writing.
+- [x] Close the stalled QA reviewer after two timeout windows and no report output.
+- [x] Perform local QA review against Safety UI, route-level acute lock, matrix status, and test coverage.
+- [x] Add red browser coverage for resolving Coach-created acute episodes from the Safety view.
+- [x] Fix Safety view open-event discovery and duplicate Help Now UI append behavior.
+- [x] Run focused API/unit/browser tests and full API/unit suite with test env pinned.
+- [x] Write QA report at `context_history/contexts/2026-05-14_slice3_qa_review.md`.

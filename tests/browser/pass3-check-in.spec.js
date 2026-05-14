@@ -48,6 +48,20 @@ test("completes morning quick check-in and marks first anchor complete", async (
   expect(Date.now() - startedAt).toBeLessThan(30000);
 });
 
+test("loads the Today view through the canonical today endpoint", async ({ page }) => {
+  let todayRequests = 0;
+  page.on("request", request => {
+    if (new URL(request.url()).pathname === "/api/today") {
+      todayRequests += 1;
+    }
+  });
+
+  await completeRoutineSetup(page);
+
+  await expect(page.getByRole("heading", { name: "Morning quick check-in" })).toBeVisible();
+  await expect.poll(() => todayRequests).toBeGreaterThan(0);
+});
+
 test("saves a focus and cope-ahead plan and shows it on Today", async ({ page }) => {
   await completeRoutineSetup(page);
 
