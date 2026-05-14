@@ -40,12 +40,11 @@ The WebSocket helper now funnels timeout, constructor failure, ready events, API
 - Follow-up Review Agent B found no docs/portability/thread-coverage issues beyond expected pre-commit closure steps.
 
 ### State
-completed locally pending commit/push and post-push PR re-query
+pushed; external review pending
 
 ### Next Steps
-- Commit and push the branch.
-- Re-query PR #1 checks and review threads.
-- Draft a local PR resolution summary, but do not post it or resolve review threads until Bryan approves.
+- Wait for CodeRabbit to finish reviewing commit `c8687ff`.
+- Post the drafted PR resolution summary or resolve threads only after Bryan approves those GitHub write actions.
 
 ### Related Files
 - `PLAN.md`

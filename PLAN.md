@@ -309,19 +309,26 @@ git ls-files -z | xargs -0 rg -n "/Users/(twoedge|[^/[:space:]]+)" || true
 
 **Owner:** Agent Lead
 
-- [ ] Review final diff against the ledger, one thread at a time.
-- [ ] Decide whether `PLAN.md` is included in the implementation commit. If included, mention that the plan was updated per Bryan's request.
-- [ ] Commit only after QA evidence is recorded.
-- [ ] Push `codex/anchor-cleanup-pass1-pass2`.
-- [ ] Re-query PR #1 threads and checks.
+- [x] Review final diff against the ledger, one thread at a time.
+  - Evidence: final diff addressed docs thread `3238414968` with existing blank-line table spacing, docs thread `3238709201` with `environment- and quota-dependent`, docs thread `3238709205` with `pseudo-implementations`, WebSocket thread `3238709216` with single-settlement close/error/timeout handling and unit coverage, and stale thread `3238381942` with no `server/db.js` changes.
+- [x] Decide whether `PLAN.md` is included in the implementation commit. If included, mention that the plan was updated per Bryan's request.
+  - Decision: `PLAN.md` is included because Bryan requested careful plan tracking and agent-team execution evidence.
+- [x] Commit only after QA evidence is recorded.
+  - Evidence: committed `c8687ff` (`fix: address remaining PR review comments`) after targeted, broad, SQL-backed, portability, and follow-up review evidence was recorded.
+- [x] Push `codex/anchor-cleanup-pass1-pass2`.
+  - Evidence: pushed `93001f2..c8687ff` to `origin/codex/anchor-cleanup-pass1-pass2`.
+- [x] Re-query PR #1 threads and checks.
+  - Evidence: `gh pr view 1 --repo revsmoke/anchor --json headRefName,headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,url` reported head `c8687fffea90b20d5cab8141d1f0dae407055992`, `mergeStateStatus: UNSTABLE`, and CodeRabbit `PENDING`. Multiple `gh pr checks 1 --repo revsmoke/anchor` polls continued to report `CodeRabbit pending Review in progress`.
 
 ```bash
 gh pr checks 1 --repo revsmoke/anchor
 gh pr view 1 --repo revsmoke/anchor --json reviewDecision,mergeStateStatus,statusCheckRollup
 ```
 
-- [ ] Draft, but do not post, a PR comment summarizing thread IDs addressed, evidence commands, and any skipped optional live credential verification.
-- [ ] Ask Bryan before posting the PR reply or resolving review threads.
+- [x] Draft, but do not post, a PR comment summarizing thread IDs addressed, evidence commands, and any skipped optional live credential verification.
+  - Local draft: "Addressed remaining PR #1 comments in `c8687ff`: confirmed/fixed MD058 table spacing for `3238414968`, fixed docs wording for `3238709201` and `3238709205`, added WebSocket single-settlement close/error/timeout handling and unit coverage for `3238709216`, and verified stale bootstrap thread `3238381942` by current code inspection plus disposable PostgreSQL `TEST_DATABASE_URL=postgres://localhost:5432/anchor_pr1_comment_test bun test tests/api/pass2-timezone-contract.test.js`. Verification: `bun test tests/unit/live-openai-config.test.js`, `bun test tests/live/openai-websocket-live.test.js` (skipped without live mode/credentials), SQL-backed Pass 2 test, `bun run test`, `git diff --check`, and portability scan. No PR threads were resolved and no PR reply was posted pending Bryan approval."
+- [x] Ask Bryan before posting the PR reply or resolving review threads.
+  - Evidence: no GitHub PR comment was posted and no review thread was resolved; final response will ask Bryan before any GitHub write action.
 
 ## Historical Context
 
