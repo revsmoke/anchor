@@ -1,6 +1,6 @@
 # Pre-Task Verification Report
 
-Repository: `/Users/twoedge/Dev/dbt`
+Repository: `<repo-root>`
 Date: 2026-05-12
 Scope: repository shape, expected artifact presence, stack/test command discovery, and immediate review risks.
 

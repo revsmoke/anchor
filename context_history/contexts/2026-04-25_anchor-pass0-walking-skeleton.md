@@ -10,26 +10,26 @@ Implemented the Pass 0 walking skeleton from `SPEC.md`: one HTML page, one CSS f
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/package.json` | Bun scripts and Pass 0 dependencies. |
-| `/Users/twoedge/Dev/dbt/bun.lock` | Locked installed dependencies. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Pass 0 route dispatch and static file serving. |
-| `/Users/twoedge/Dev/dbt/server/index.js` | Bun dev server entrypoint. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | PostgreSQL adapter for health and Today snapshot. |
-| `/Users/twoedge/Dev/dbt/server/config.js` | Public/server config defaults. |
-| `/Users/twoedge/Dev/dbt/server/http/response.js` | Standard JSON response helpers. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Pass 0 Anchor page. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Pass 0 responsive styles. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Fetch/render logic for Today snapshot. |
-| `/Users/twoedge/Dev/dbt/db/migrations/001_app_status_snapshots.sql` | Walking skeleton table. |
-| `/Users/twoedge/Dev/dbt/db/seeds/001_app_status_snapshots.sql` | One seeded Anchor snapshot row. |
-| `/Users/twoedge/Dev/dbt/scripts/db-*.js` | Migration, seed, and reset helpers. |
-| `/Users/twoedge/Dev/dbt/tests/unit/response.test.js` | Unit tests for JSON response envelope. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass0-routes.test.js` | API tests for Pass 0 routes. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass0.spec.js` | Browser tests for render, error, console, and favicon behavior. |
-| `/Users/twoedge/Dev/dbt/playwright.config.js` | Browser test config on port 3210. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Pass 0 evidence and current capability state. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass0.json` | Importable dashboard state with Pass 0 marked done. |
-| `/Users/twoedge/Dev/dbt/context_history/install_log.md` | Dependency/browser install notes. |
+| `package.json` | Bun scripts and Pass 0 dependencies. |
+| `bun.lock` | Locked installed dependencies. |
+| `server/app.js` | Pass 0 route dispatch and static file serving. |
+| `server/index.js` | Bun dev server entrypoint. |
+| `server/db.js` | PostgreSQL adapter for health and Today snapshot. |
+| `server/config.js` | Public/server config defaults. |
+| `server/http/response.js` | Standard JSON response helpers. |
+| `public/index.html` | Pass 0 Anchor page. |
+| `public/css/app.css` | Pass 0 responsive styles. |
+| `public/js/app.js` | Fetch/render logic for Today snapshot. |
+| `db/migrations/001_app_status_snapshots.sql` | Walking skeleton table. |
+| `db/seeds/001_app_status_snapshots.sql` | One seeded Anchor snapshot row. |
+| `scripts/db-*.js` | Migration, seed, and reset helpers. |
+| `tests/unit/response.test.js` | Unit tests for JSON response envelope. |
+| `tests/api/pass0-routes.test.js` | API tests for Pass 0 routes. |
+| `tests/browser/pass0.spec.js` | Browser tests for render, error, console, and favicon behavior. |
+| `playwright.config.js` | Browser test config on port 3210. |
+| `CAPABILITY_LEDGER.md` | Pass 0 evidence and current capability state. |
+| `vertical-slice-dashboard-anchor-pass0.json` | Importable dashboard state with Pass 0 marked done. |
+| `context_history/install_log.md` | Dependency/browser install notes. |
 
 ### Key Decisions
 

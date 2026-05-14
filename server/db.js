@@ -155,7 +155,13 @@ export function createDb(databaseUrl) {
         where user_id = ${userId}
         limit 1
       `;
-      const todayRows = await sql`
+      const templateRows = await sql`
+        select id::text, type, target_time
+        from routine_templates
+        where user_id = ${userId}
+        order by case type when 'morning' then 1 when 'midday' then 2 else 3 end
+      `;
+      let todayRows = await sql`
         select
           ri.id::text,
           ri.user_id::text,
@@ -171,7 +177,7 @@ export function createDb(databaseUrl) {
           and ri.instance_date = ${localDate}
         order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
       `;
-      const dailyPlanRows = await sql`
+      let dailyPlanRows = await sql`
         select
           id::text,
           user_id::text,
@@ -187,10 +193,64 @@ export function createDb(databaseUrl) {
           and plan_date = ${localDate}
         limit 1
       `;
+      if (profileRows.length > 0 && templateRows.length === 3 && todayRows.length < templateRows.length) {
+        await sql.begin(async transaction => {
+          await transaction`
+            insert into routine_instances (user_id, routine_template_id, instance_date, target_time, status)
+            select ${userId}, rt.id, ${localDate}, rt.target_time, 'scheduled'
+            from routine_templates rt
+            where rt.user_id = ${userId}
+              and not exists (
+                select 1
+                from routine_instances ri
+                where ri.user_id = ${userId}
+                  and ri.routine_template_id = rt.id
+                  and ri.instance_date = ${localDate}
+              )
+          `;
+          await transaction`
+            insert into daily_plans (user_id, plan_date, next_best_step)
+            values (${userId}, ${localDate}, 'Start your morning anchor.')
+            on conflict (user_id, plan_date) do nothing
+          `;
+        });
+        todayRows = await sql`
+          select
+            ri.id::text,
+            ri.user_id::text,
+            ri.routine_template_id::text,
+            rt.type,
+            ri.target_time,
+            ri.status,
+            ri.completed_at,
+            ri.completed_check_in_id::text
+          from routine_instances ri
+          join routine_templates rt on rt.id = ri.routine_template_id
+          where ri.user_id = ${userId}
+            and ri.instance_date = ${localDate}
+          order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
+        `;
+        dailyPlanRows = await sql`
+          select
+            id::text,
+            user_id::text,
+            plan_date,
+            next_best_step,
+            mode,
+            must_dos,
+            deferred_items,
+            regulation_action,
+            reset_history
+          from daily_plans
+          where user_id = ${userId}
+            and plan_date = ${localDate}
+          limit 1
+        `;
+      }
       const consentComplete = REQUIRED_CONSENT_TYPES.every(type =>
         consents.some(consent => consent.type === type && consent.granted)
       );
-      const onboardingComplete = profileRows.length > 0 && todayRows.length === 3;
+      const onboardingComplete = profileRows.length > 0 && templateRows.length === 3;
 
       return {
         consents,

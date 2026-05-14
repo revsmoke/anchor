@@ -7,21 +7,22 @@ implementation
 Implemented the guided wayfinding slice requested after the Morning quick check-in. Anchor now replaces passive result text with explicit actions, stores a daily focus/cope-ahead plan, adds a real Midday anchor view, and uses hash routes so browser Back/Forward works across guided app sections.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/db/migrations/017_daily_focus_plans.sql` | Added one focus plan per user/day. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added authenticated focus-plan routes and changed Morning action copy. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added focus-plan persistence, bootstrap inclusion, and privacy-delete cleanup. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added focus-plan validation. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added action panel, Today progress rail, Focus view, and Midday view. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Styled result actions, progress rail, and focus/Midday task surfaces. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added focus-plan save, Midday completion, anchor progress rendering, and hash history routing. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass3-check-ins.test.js` | Added focus-plan API/bootstrap tests and updated Morning action expectations. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass3-check-in.spec.js` | Added browser coverage for Morning result actions, focus plan, Midday, and Back/Forward. |
-| `/Users/twoedge/Dev/dbt/README.md` | Documented day navigation, Focus, Midday, and hash-based history. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Recorded the completed slice and verification evidence. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added the hardening dashboard pass for this slice. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Synced embedded dashboard default state. |
+| `db/migrations/017_daily_focus_plans.sql` | Added one focus plan per user/day. |
+| `server/app.js` | Added authenticated focus-plan routes and changed Morning action copy. |
+| `server/db.js` | Added focus-plan persistence, bootstrap inclusion, and privacy-delete cleanup. |
+| `server/auth/validation.js` | Added focus-plan validation. |
+| `public/index.html` | Added action panel, Today progress rail, Focus view, and Midday view. |
+| `public/css/app.css` | Styled result actions, progress rail, and focus/Midday task surfaces. |
+| `public/js/app.js` | Added focus-plan save, Midday completion, anchor progress rendering, and hash history routing. |
+| `tests/api/pass3-check-ins.test.js` | Added focus-plan API/bootstrap tests and updated Morning action expectations. |
+| `tests/browser/pass3-check-in.spec.js` | Added browser coverage for Morning result actions, focus plan, Midday, and Back/Forward. |
+| `README.md` | Documented day navigation, Focus, Midday, and hash-based history. |
+| `CAPABILITY_LEDGER.md` | Recorded the completed slice and verification evidence. |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added the hardening dashboard pass for this slice. |
+| `vertical-slice-dashboard.html` | Synced embedded dashboard default state. |
 
 ### Key Decisions
 - Used hash routes instead of path routing so the existing Bun static app shell needs no server fallback changes.
@@ -50,6 +51,6 @@ completed
 - Consider splitting `public/js/app.js` before the next substantial guided-flow slice.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`

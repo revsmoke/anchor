@@ -244,7 +244,9 @@ test("forgot-password dialog resets a local prototype password and returns to si
   await dialog.getByLabel("Account address").fill(email);
   await dialog.getByRole("button", { name: "Get reset code" }).click();
   await expect(dialog.getByText("Prototype reset code:")).toBeVisible();
-  const code = (await dialog.locator("#reset-dev-code").textContent()).trim();
+  const codeText = await dialog.locator("#reset-dev-code").textContent();
+  expect(codeText).not.toBeNull();
+  const code = codeText.trim();
 
   await dialog.getByLabel("Reset code").fill(code);
   await dialog.getByLabel("New passphrase").fill("new-passphrase-123");

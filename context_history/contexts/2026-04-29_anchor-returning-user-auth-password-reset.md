@@ -7,20 +7,21 @@ implementation
 Implemented the returning-user auth slice for Anchor. The first screen now supports distinct Sign in and Create account modes, returning users resume saved app state through a bootstrap route, and local/dev users can complete a fully testable forgot-password flow with one-time reset codes.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/public/index.html` | Replaced signup-only consent surface with semantic account access UI and password reset `<dialog>`. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added auth mode state, sign-in, account creation, bootstrap resume, password reset request/confirm, and dialog behavior. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added calm transitions, dialog styling, focus states, segmented auth controls, and reduced-motion support. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added `/api/app/bootstrap`, password reset request/confirm routes, reset code creation, and quiet unauthenticated bootstrap. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added bootstrap data loader, password reset token persistence, attempt lockout, password update/session invalidation, and deletion cleanup. |
-| `/Users/twoedge/Dev/dbt/db/migrations/016_password_reset_tokens.sql` | Added reset-token table with hashed token, expiry, attempt count, and lock timestamp. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass1-auth-consent.test.js` | Added bootstrap, password reset, production no-code, and reset lockout coverage. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass1-consent.spec.js` | Added segmented auth, returning sign-in, password reset dialog, and resume coverage. |
-| `/Users/twoedge/Dev/dbt/README.md` | Documented Sign in/Create account and forgot-password behavior. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Recorded completed slice evidence and verification. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added completed auth/reset pass across all layers. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded updated dashboard state with the auth/reset pass. |
+| `public/index.html` | Replaced signup-only consent surface with semantic account access UI and password reset `<dialog>`. |
+| `public/js/app.js` | Added auth mode state, sign-in, account creation, bootstrap resume, password reset request/confirm, and dialog behavior. |
+| `public/css/app.css` | Added calm transitions, dialog styling, focus states, segmented auth controls, and reduced-motion support. |
+| `server/app.js` | Added `/api/app/bootstrap`, password reset request/confirm routes, reset code creation, and quiet unauthenticated bootstrap. |
+| `server/db.js` | Added bootstrap data loader, password reset token persistence, attempt lockout, password update/session invalidation, and deletion cleanup. |
+| `db/migrations/016_password_reset_tokens.sql` | Added reset-token table with hashed token, expiry, attempt count, and lock timestamp. |
+| `tests/api/pass1-auth-consent.test.js` | Added bootstrap, password reset, production no-code, and reset lockout coverage. |
+| `tests/browser/pass1-consent.spec.js` | Added segmented auth, returning sign-in, password reset dialog, and resume coverage. |
+| `README.md` | Documented Sign in/Create account and forgot-password behavior. |
+| `CAPABILITY_LEDGER.md` | Recorded completed slice evidence and verification. |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added completed auth/reset pass across all layers. |
+| `vertical-slice-dashboard.html` | Embedded updated dashboard state with the auth/reset pass. |
 
 ### Key Decisions
 - Used a local/dev visible reset code instead of email delivery so the prototype flow is fully browser-testable.
@@ -51,7 +52,7 @@ completed
 - Consider a visible logout/account switch affordance if multi-account use becomes common.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `vertical-slice-dashboard-anchor-hardening.json`

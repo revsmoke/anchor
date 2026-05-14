@@ -30,9 +30,9 @@ Anchor should feel like the best parts of a DBT diary card, a daily planner, a s
 
 This PRD is grounded in the repo research memos created during this session:
 
-- [research/dbt-clinical.md](/Users/twoedge/Dev/dbt/research/dbt-clinical.md)
-- [research/competitive-landscape.md](/Users/twoedge/Dev/dbt/research/competitive-landscape.md)
-- [research/openai-architecture.md](/Users/twoedge/Dev/dbt/research/openai-architecture.md)
+- [research/dbt-clinical.md](research/dbt-clinical.md)
+- [research/competitive-landscape.md](research/competitive-landscape.md)
+- [research/openai-architecture.md](research/openai-architecture.md)
 
 ## 2. Problem
 

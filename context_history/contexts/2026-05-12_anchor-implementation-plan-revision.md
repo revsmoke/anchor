@@ -7,11 +7,12 @@ planning
 Revised `IMPLEMENTATION_PLAN.md` from the agent-team gap review so it is more decision-complete for execution. The update keeps the V1 completion direction but fixes dashboard status compatibility, Gate 0 decision records, oversized pass sequencing, SQL-backed verification, browser proof requirements, frontend modularization, and cross-pass data ownership.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md` | Rewritten execution-ready V1 completion plan with 25 smaller passes |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-12_anchor-implementation-plan-revision.md` | Session summary for this plan revision |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this session summary |
+| `IMPLEMENTATION_PLAN.md` | Rewritten execution-ready V1 completion plan with 25 smaller passes |
+| `context_history/contexts/2026-05-12_anchor-implementation-plan-revision.md` | Session summary for this plan revision |
+| `context_history/context_index.md` | Indexed this session summary |
 
 ### Key Decisions
 - Preserved dashboard `status` values as `todo`, `active`, and `done`; prototype/fixture/blocking detail now belongs in metadata, task notes, or ledger evidence unless `SPEC.md` is revised.
@@ -36,6 +37,6 @@ completed
 - Keep Gate 0 visible until owner/evidence exists for product, clinical, legal, retention, sharing, and notification decisions.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md`
-- `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-report.md`
-- `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-12_anchor-v1-gap-review-plan.md`
+- `IMPLEMENTATION_PLAN.md`
+- `review/agent-final-plan-qa-report.md`
+- `context_history/contexts/2026-05-12_anchor-v1-gap-review-plan.md`

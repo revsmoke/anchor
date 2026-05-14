@@ -4,15 +4,16 @@
 planning
 
 ### Summary
-Completed final QA review of `IMPLEMENTATION_PLAN.md` against the PRD, SPEC, capability ledger, and four lane reports. The plan is directionally sound but needs required plan fixes before implementation starts, mostly around non-code launch gates, sequencing, and dependency control.
+Completed final QA review of `IMPLEMENTATION_PLAN.md` against the PRD, SPEC, capability ledger, and four lane reports. The plan is directionally sound but requires plan fixes before implementation starts, mostly around non-code launch gates, sequencing, and dependency control.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-PLAN.md` | Isolated QA lane plan with completed checklist |
-| `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-report.md` | Final plan QA report under 300 lines |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-12_anchor-final-plan-qa.md` | End-of-session context summary |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this context summary for future agents |
+| `review/agent-final-plan-qa-PLAN.md` | Isolated QA lane plan with completed checklist |
+| `review/agent-final-plan-qa-report.md` | Final plan QA report under 300 lines |
+| `context_history/contexts/2026-05-12_anchor-final-plan-qa.md` | End-of-session context summary |
+| `context_history/context_index.md` | Indexed this context summary for future agents |
 
 ### Key Decisions
 - Treat `IMPLEMENTATION_PLAN.md` as directionally valid but not execution-ready: Seven required fixes were identified before work should begin.
@@ -35,9 +36,9 @@ completed
 - Re-run final plan QA after those plan edits, before assigning implementation agents.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md`
-- `/Users/twoedge/Dev/dbt/review/agent-requirements-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-ui-pseudo-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-backend-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-qa-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-report.md`
+- `IMPLEMENTATION_PLAN.md`
+- `review/agent-requirements-report.md`
+- `review/agent-ui-pseudo-report.md`
+- `review/agent-backend-report.md`
+- `review/agent-qa-report.md`
+- `review/agent-final-plan-qa-report.md`

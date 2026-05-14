@@ -7,12 +7,13 @@ review
 Completed the backend/data implementation review lane for Anchor. The review compared `server/app.js`, `server/db.js`, config/readiness, services/auth modules, migrations/seeds, and API tests against `PRD.md`, `SPEC.md`, and `CAPABILITY_LEDGER.md`, then wrote the final lane report under `review/agent-backend-report.md`.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/review/agent-backend-PLAN.md` | Lane-specific plan and completion checklist |
-| `/Users/twoedge/Dev/dbt/review/agent-backend-report.md` | Backend/data review report with V1 gaps and top concerns |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-12_anchor-backend-data-review.md` | End-of-session context summary |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Added index entry for this review summary |
+| `review/agent-backend-PLAN.md` | Lane-specific plan and completion checklist |
+| `review/agent-backend-report.md` | Backend/data review report with V1 gaps and top concerns |
+| `context_history/contexts/2026-05-12_anchor-backend-data-review.md` | End-of-session context summary |
+| `context_history/context_index.md` | Added index entry for this review summary |
 
 ### Key Decisions
 - Kept the review non-invasive: no source code was modified.
@@ -36,5 +37,5 @@ completed
 - Prioritize required route omissions and replacement of deterministic placeholder surfaces before calling the backend V1-complete.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/review/agent-backend-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-backend-PLAN.md`
+- `review/agent-backend-report.md`
+- `review/agent-backend-PLAN.md`

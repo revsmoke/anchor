@@ -7,18 +7,19 @@ implementation
 Implemented Pass 1 from `IMPLEMENTATION_PLAN.md` as a vertical documentation and artifact-contract slice. The dashboard keeps the SPEC-compatible `todo`, `active`, and `done` status enum, while new evidence metadata and tests distinguish verified mechanics from prototype, settings-only, demo-fixture, blocked, and deferred surfaces.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Pass 1 execution checklist |
-| `/Users/twoedge/Dev/dbt/tests/unit/dashboard-artifacts.test.js` | Contract tests for dashboard JSON and embedded HTML default state |
-| `/Users/twoedge/Dev/dbt/tests/browser/dashboard-artifacts.spec.js` | Browser test for the dashboard default state, status counts, labels, and console cleanliness |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added `anchor-evidence-v1` evidence metadata without changing dashboard statuses |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass13.json` | Added evidence metadata to the prior pass-13 dashboard artifact |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Updated embedded default state evidence metadata and preserved dashboard status contract |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 1 evidence section and downgraded misleading broad-complete claims |
-| `/Users/twoedge/Dev/dbt/README.md` | Clarified prototype/settings-only/demo-fixture/deferred surfaces for user-facing docs |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this session summary |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-12_anchor-pass1-truthful-status-evidence.md` | Session summary and handoff |
+| `PLAN.md` | Pass 1 execution checklist |
+| `tests/unit/dashboard-artifacts.test.js` | Contract tests for dashboard JSON and embedded HTML default state |
+| `tests/browser/dashboard-artifacts.spec.js` | Browser test for the dashboard default state, status counts, labels, and console cleanliness |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added `anchor-evidence-v1` evidence metadata without changing dashboard statuses |
+| `vertical-slice-dashboard-anchor-pass13.json` | Added evidence metadata to the prior pass-13 dashboard artifact |
+| `vertical-slice-dashboard.html` | Updated embedded default state evidence metadata and preserved dashboard status contract |
+| `CAPABILITY_LEDGER.md` | Added Pass 1 evidence section and downgraded misleading broad-complete claims |
+| `README.md` | Clarified prototype/settings-only/demo-fixture/deferred surfaces for user-facing docs |
+| `context_history/context_index.md` | Indexed this session summary |
+| `context_history/contexts/2026-05-12_anchor-pass1-truthful-status-evidence.md` | Session summary and handoff |
 
 ### Key Decisions
 - Status compatibility: dashboard `status` values remain exactly `todo`, `active`, and `done`; evidence labels live outside the status enum.
@@ -45,6 +46,6 @@ completed
 - Preserve the dashboard status enum unless `SPEC.md` is explicitly revised.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
+- `IMPLEMENTATION_PLAN.md`
+- `vertical-slice-dashboard-anchor-hardening.json`
+- `CAPABILITY_LEDGER.md`

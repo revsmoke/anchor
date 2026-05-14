@@ -7,17 +7,18 @@ planning
 Completed an agent-team review of Anchor against `PRD.md`, `SPEC.md`, `vertical-slice-dashboard.html`, vertical-slice JSON artifacts, `CAPABILITY_LEDGER.md`, and the current codebase. The result is `IMPLEMENTATION_PLAN.md`, a revised vertical-slice plan for converting prototype-only or UI-only surfaces into real V1 functionality.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Root execution checklist for this review session |
-| `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md` | New V1 completion plan with Gate 0, dependency rules, and 16 vertical slices |
-| `/Users/twoedge/Dev/dbt/agent-pretask-verification.md` | Repository shape, stack, test command, and risk verification |
-| `/Users/twoedge/Dev/dbt/review/agent-requirements-report.md` | PRD/SPEC requirement extraction and required/optional/ambiguous classification |
-| `/Users/twoedge/Dev/dbt/review/agent-ui-pseudo-report.md` | UI/dashboard pseudo-functionality review |
-| `/Users/twoedge/Dev/dbt/review/agent-backend-report.md` | Backend/data route, database, placeholder, and test review |
-| `/Users/twoedge/Dev/dbt/review/agent-qa-report.md` | Tests, ledger, and artifact QA review |
-| `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-report.md` | Final QA of the drafted implementation plan |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this session summary |
+| `PLAN.md` | Root execution checklist for this review session |
+| `IMPLEMENTATION_PLAN.md` | New V1 completion plan with Gate 0, dependency rules, and 16 vertical slices |
+| `agent-pretask-verification.md` | Repository shape, stack, test command, and risk verification |
+| `review/agent-requirements-report.md` | PRD/SPEC requirement extraction and required/optional/ambiguous classification |
+| `review/agent-ui-pseudo-report.md` | UI/dashboard pseudo-functionality review |
+| `review/agent-backend-report.md` | Backend/data route, database, placeholder, and test review |
+| `review/agent-qa-report.md` | Tests, ledger, and artifact QA review |
+| `review/agent-final-plan-qa-report.md` | Final QA of the drafted implementation plan |
+| `context_history/context_index.md` | Indexed this session summary |
 
 ### Key Decisions
 - Treat Anchor as a strong runnable prototype, not V1-complete: Several dashboard/ledger `done` states are deterministic, fixture-bound, JSON-only, settings-only, or UI-only.
@@ -46,9 +47,9 @@ completed
 - Do not implement export/privacy assertions in Pass 1; reserve full export body, redaction, deletion persistence, and artifact invalidation tests for the relevant later vertical slices.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md`
-- `/Users/twoedge/Dev/dbt/review/agent-requirements-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-ui-pseudo-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-backend-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-qa-report.md`
-- `/Users/twoedge/Dev/dbt/review/agent-final-plan-qa-report.md`
+- `IMPLEMENTATION_PLAN.md`
+- `review/agent-requirements-report.md`
+- `review/agent-ui-pseudo-report.md`
+- `review/agent-backend-report.md`
+- `review/agent-qa-report.md`
+- `review/agent-final-plan-qa-report.md`

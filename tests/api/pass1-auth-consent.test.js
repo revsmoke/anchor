@@ -133,14 +133,22 @@ function createMemoryAuthDb() {
     },
 
     async getActivePasswordResetTokens(userId) {
+      const now = Date.now();
       return [...resetTokens.values()]
-        .filter(token => token.userId === userId && !token.usedAt && !token.lockedAt && (token.attemptCount ?? 0) < 5)
+        .filter(token =>
+          token.userId === userId &&
+          !token.usedAt &&
+          !token.lockedAt &&
+          (token.attemptCount ?? 0) < 5 &&
+          Date.parse(token.expiresAt) > now
+        )
         .map(token => ({ ...token }));
     },
 
     async recordPasswordResetFailure(userId) {
+      const now = Date.now();
       for (const [tokenId, token] of resetTokens.entries()) {
-        if (token.userId !== userId || token.usedAt || token.lockedAt) continue;
+        if (token.userId !== userId || token.usedAt || token.lockedAt || Date.parse(token.expiresAt) <= now) continue;
         const attemptCount = (token.attemptCount ?? 0) + 1;
         resetTokens.set(tokenId, {
           ...token,

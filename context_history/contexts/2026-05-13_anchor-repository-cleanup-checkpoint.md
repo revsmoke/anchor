@@ -7,14 +7,15 @@ git-cleanup
 Moved the dirty local Anchor work off `main` and onto `codex/anchor-cleanup-pass1-pass2`, grouped the meaningful implementation, planning, review, and evidence files into a clean commit, and pushed the branch to GitHub. Added `.playwright-mcp/` to `.gitignore` so local browser-tool logs no longer clutter repository status.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/.gitignore` | Ignore local Playwright MCP logs |
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Repository cleanup checklist |
-| `/Users/twoedge/Dev/dbt/review/agent-repo-cleanup-PLAN.md` | Agent cleanup verification plan |
-| `/Users/twoedge/Dev/dbt/review/agent-repo-cleanup-report.md` | Read-only cleanup grouping report |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this cleanup checkpoint |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-13_anchor-repository-cleanup-checkpoint.md` | Session summary and handoff |
+| `.gitignore` | Ignore local Playwright MCP logs |
+| `PLAN.md` | Repository cleanup checklist |
+| `review/agent-repo-cleanup-PLAN.md` | Agent cleanup verification plan |
+| `review/agent-repo-cleanup-report.md` | Read-only cleanup grouping report |
+| `context_history/context_index.md` | Indexed this cleanup checkpoint |
+| `context_history/contexts/2026-05-13_anchor-repository-cleanup-checkpoint.md` | Session summary and handoff |
 
 ### Key Decisions
 - Kept the current work on `codex/anchor-cleanup-pass1-pass2` rather than continuing development directly on `main`.
@@ -37,6 +38,6 @@ completed
 - Start `IMPLEMENTATION_PLAN.md` Pass 3, canonical `GET /api/today`, on a clean branch after the cleanup PR is settled.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/review/agent-repo-cleanup-report.md`
-- `/Users/twoedge/Dev/dbt/IMPLEMENTATION_PLAN.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
+- `review/agent-repo-cleanup-report.md`
+- `IMPLEMENTATION_PLAN.md`
+- `CAPABILITY_LEDGER.md`

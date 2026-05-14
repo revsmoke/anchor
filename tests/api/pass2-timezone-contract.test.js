@@ -204,6 +204,54 @@ describeSql("Pass 2 SQL-backed date contract", () => {
     expect(plan.plan_date).toBe("2026-05-12");
     expect(focus.plan_date).toBe("2026-05-12");
   });
+
+  test("bootstrap creates today's anchors from existing routine templates on a later local date", async () => {
+    const user = await db.createUser({
+      email: "returning-bootstrap@example.com",
+      passwordHash: "hash",
+      timezone: "UTC",
+      locale: "en-US"
+    });
+    await db.saveConsentRecords(user.id, [
+      { type: "crisis_limits", granted: true },
+      { type: "privacy_choices", granted: true },
+      { type: "voice_audio", granted: true }
+    ]);
+    await db.saveUserProfile(user.id, {
+      timezone: "America/Detroit",
+      wakeTime: "07:00",
+      sleepTime: "23:00",
+      goals: ["stability"],
+      struggles: ["mornings"],
+      therapyStatus: "self_directed"
+    });
+    await db.saveRoutineSetup(user.id, [
+      { type: "morning", targetTime: "07:30", steps: ["check_in"] },
+      { type: "midday", targetTime: "12:30", steps: ["status"] },
+      { type: "evening", targetTime: "21:00", steps: ["diary"] }
+    ], { localDate: "2026-05-12", timezone: "America/Detroit" });
+
+    const bootstrap = await db.getAppBootstrap(user.id, {
+      localDate: "2026-05-13",
+      timezone: "America/Detroit"
+    });
+
+    expect(bootstrap.onboardingComplete).toBe(true);
+    expect(bootstrap.nextStep).toBe("main_app");
+    expect(bootstrap.today.map(anchor => anchor.type)).toEqual(["morning", "midday", "evening"]);
+    const [routineCount] = await sql`
+      select count(*)::int as count
+      from routine_instances
+      where user_id = ${user.id} and instance_date = '2026-05-13'
+    `;
+    const [planCount] = await sql`
+      select count(*)::int as count
+      from daily_plans
+      where user_id = ${user.id} and plan_date = '2026-05-13'
+    `;
+    expect(routineCount.count).toBe(3);
+    expect(planCount.count).toBe(1);
+  });
 });
 
 async function resetSchema(sql) {

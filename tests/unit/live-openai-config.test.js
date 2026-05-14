@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { getServerConfig } from "../../server/config.js";
 import { createRealtimeClient } from "../../server/services/realtime.js";
+import { runRealtimeWebSocketSmoke } from "../../scripts/live-openai-websocket-smoke.js";
 
 describe("live OpenAI test config", () => {
   test("enables explicit network mode without production env", () => {
@@ -55,8 +56,9 @@ describe("Realtime client live network behavior", () => {
     expect(requests[0].url).toBe("https://api.openai.com/v1/realtime/calls");
     expect(requests[0].options.headers.authorization).toBe("Bearer sk-live-test-secret");
     expect(requests[0].options.body).toBeInstanceOf(FormData);
-    expect(await requests[0].options.body.get("sdp")).toContain("offer");
-    expect(JSON.parse(requests[0].options.body.get("session")).type).toBe("realtime");
+    const body = requests[0].options.body;
+    expect(String(body.get("sdp"))).toContain("offer");
+    expect(JSON.parse(String(body.get("session"))).type).toBe("realtime");
   });
 
   test("hangup checks OpenAI response status in live mode", async () => {
@@ -87,5 +89,20 @@ describe("Realtime client live network behavior", () => {
     expect(requests).toHaveLength(1);
     expect(requests[0].url).toBe("https://api.openai.com/v1/realtime/calls/rtc_live_test_123/hangup");
     expect(requests[0].options.headers.authorization).toBe("Bearer sk-live-test-secret");
+  });
+});
+
+describe("Realtime WebSocket smoke helper", () => {
+  test("rejects immediately when the WebSocket constructor fails", async () => {
+    class ThrowingWebSocket {
+      constructor() {
+        throw new Error("constructor failed");
+      }
+    }
+
+    await expect(runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, ThrowingWebSocket)).rejects.toThrow("constructor failed");
   });
 });

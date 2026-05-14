@@ -1,12 +1,17 @@
-# Repository Cleanup Plan
+# PR #1 Comment Resolution Plan
 
-- [x] Capture the current local/remote branch state without changing files.
-- [x] Delegate read-only cleanup verification to an agent and review the report.
-- [x] Identify which dirty files belong to the completed Pass 1/Pass 2 work versus pre-existing or unrelated work.
-- [x] Decide a safe branch and PR strategy that avoids losing user work.
-- [x] Create or switch to an appropriate feature branch if needed.
-- [x] Stage only the intended files for the cleanup/PR unit.
-- [x] Run targeted verification for the staged unit.
-- [x] Commit the staged unit with a focused message.
-- [x] Push the branch and prepare/open the PR if the local/remote state is clean.
-- [x] Update context history with the repo cleanup outcome.
+- [x] Fetch remote state and confirm the active branch is `codex/anchor-cleanup-pass1-pass2`.
+- [x] Build a local PR comment ledger from `gh` review data.
+- [x] Delegate backend/test, voice/live, docs/portability, and QA lanes to the agent team.
+- [x] Add failing regression coverage for returning-user bootstrap on a new local date.
+- [x] Implement bootstrap/onboarding fix without changing date/timezone semantics.
+- [x] Implement targeted review-comment fixes for Playwright port parsing and test helpers.
+- [x] Implement voice/live transport cleanup and test readability fixes.
+- [x] Replace user-specific absolute local paths in tracked files with portable paths.
+- [x] Fix PR-commented Markdown table spacing and related wording.
+- [x] Run targeted unit/API/live-test files.
+- [x] Run targeted browser checks, broad test checks, portability scan, and diff checks.
+- [x] Review final diff against every PR comment.
+- [ ] Commit and push the branch.
+- [ ] Reply on PR #1 with the resolution summary and final verification state.
+- [x] Update context history for this session.

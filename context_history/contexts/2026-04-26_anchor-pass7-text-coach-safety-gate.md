@@ -7,22 +7,23 @@ implementation
 Implemented Pass 7: Text Coach with Safety Gate as a vertical slice across HTML/CSS, vanilla JavaScript, Bun API routes, PostgreSQL migrations, and tests. The signed-in, consented, onboarded user can now send a text coach message and receive either a short structured coach response or a Safety Mode takeover for elevated/acute safety signals.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Pass 7 execution plan with completed checklist. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass7-coach.test.js` | API tests for normal, elevated, acute, validation, trace, and safety event behavior. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass7-coach.spec.js` | Browser tests for Text Coach send flow, Safety Mode override, and acute lock. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Text Coach UI and scoped Coach Safety Mode surface. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added coach thread and safety takeover styling. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added coach send, normal response render, safety-mode render, and acute lock handling. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added coach message validation. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added `POST /api/coach/messages`, deterministic safety classifier, coach replies, and safety-mode payloads. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added agent run and coach message persistence methods. |
-| `/Users/twoedge/Dev/dbt/db/migrations/008_text_coach.sql` | Added `agent_runs` and `coach_messages`. |
-| `/Users/twoedge/Dev/dbt/scripts/db-reset.js` | Added Pass 7 tables to reset drop order. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 7 capability ledger entry. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass7.json` | Pass 7 dashboard import artifact with Pass 0-7 marked done. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 7 complete. |
+| `PLAN.md` | Pass 7 execution plan with completed checklist. |
+| `tests/api/pass7-coach.test.js` | API tests for normal, elevated, acute, validation, trace, and safety event behavior. |
+| `tests/browser/pass7-coach.spec.js` | Browser tests for Text Coach send flow, Safety Mode override, and acute lock. |
+| `public/index.html` | Added Text Coach UI and scoped Coach Safety Mode surface. |
+| `public/css/app.css` | Added coach thread and safety takeover styling. |
+| `public/js/app.js` | Added coach send, normal response render, safety-mode render, and acute lock handling. |
+| `server/auth/validation.js` | Added coach message validation. |
+| `server/app.js` | Added `POST /api/coach/messages`, deterministic safety classifier, coach replies, and safety-mode payloads. |
+| `server/db.js` | Added agent run and coach message persistence methods. |
+| `db/migrations/008_text_coach.sql` | Added `agent_runs` and `coach_messages`. |
+| `scripts/db-reset.js` | Added Pass 7 tables to reset drop order. |
+| `CAPABILITY_LEDGER.md` | Added Pass 7 capability ledger entry. |
+| `vertical-slice-dashboard-anchor-pass7.json` | Pass 7 dashboard import artifact with Pass 0-7 marked done. |
+| `vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 7 complete. |
 
 ### Key Decisions
 - Kept Pass 7 deterministic and local. No OpenAI call is made yet because live model prompts, credentials, safety policy, and clinical/legal review are not complete.
@@ -56,7 +57,7 @@ completed
 - Preserve Pass 0-7 regression tests and continue updating `vertical-slice-dashboard.html` after every pass.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `vertical-slice-dashboard.html`

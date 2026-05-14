@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Repository: `/Users/twoedge/Dev/dbt`
+- Repository: `<repo-root>`
 - Mode: read-only verification, except this report and `review/agent-repo-cleanup-PLAN.md`
 - Destructive actions run: none
 - Git state changes run: none; no staging, commits, pulls, rebases, or pushes

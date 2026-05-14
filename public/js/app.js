@@ -180,6 +180,7 @@ let activeSkillModule = "";
 let activeChainId = "";
 let activeVoiceSessionId = "";
 let activeVoiceConnection = null;
+let activeVoiceUsedRealtime = false;
 let activeDeleteRequestId = "";
 let csrfToken = "";
 let publicConfig = null;
@@ -1620,29 +1621,36 @@ async function completeChainAnalysis(event) {
 
 async function startVoiceSession(event) {
   event.preventDefault();
+  closeActiveVoiceConnection();
   voiceErrorEl.hidden = true;
   voiceStatusEl.hidden = true;
   voicePreviewEl.hidden = true;
   voiceEndStatusEl.hidden = true;
   window.anchorVoiceEvents = [];
+  activeVoiceSessionId = "";
+  activeVoiceUsedRealtime = false;
+  let connection = null;
+  const useLiveRealtime = shouldUseRealWebRtc();
 
   try {
     const formData = new FormData(voiceForm);
-    const connection = shouldUseRealWebRtc()
+    connection = useLiveRealtime
       ? await createRealtimeWebRtcOffer()
       : null;
     const result = await postJson("/api/voice/client-secret", {
       mode: "skill",
       doNotSave: formData.get("doNotSave") === "on",
-      useLiveRealtime: shouldUseRealWebRtc(),
+      useLiveRealtime,
       contextRefs: {},
       sdpOffer: connection?.offerSdp ?? await createLocalSdpOffer()
     });
     if (connection) {
       await connectRealtimeWebRtc(connection, result.sdpAnswer);
       activeVoiceConnection = connection;
+      connection = null;
     }
     activeVoiceSessionId = result.voiceSessionId;
+    activeVoiceUsedRealtime = useLiveRealtime;
     voiceStatusEl.hidden = false;
     voiceStatusEl.textContent = result.sdpAnswer
       ? "Voice session ready. Client secret ready."
@@ -1653,6 +1661,12 @@ async function startVoiceSession(event) {
       : "Transcript preview disabled.";
     voiceEndButton.hidden = false;
   } catch (error) {
+    closeVoiceConnection(connection);
+    activeVoiceSessionId = "";
+    activeVoiceUsedRealtime = false;
+    voiceEndButton.hidden = true;
+    voiceStatusEl.hidden = true;
+    voicePreviewEl.hidden = true;
     renderInlineError(voiceErrorEl, error.message || "Voice session could not start.");
   }
 }
@@ -1774,16 +1788,21 @@ function waitForDataChannel(dataChannel) {
 }
 
 async function endVoiceSession() {
+  if (!activeVoiceSessionId) {
+    closeActiveVoiceConnection();
+    voiceEndButton.hidden = true;
+    return;
+  }
   voiceEndStatusEl.hidden = true;
   voiceEndStatusEl.textContent = "Voice session ended.";
   voiceEndStatusEl.hidden = false;
   try {
     await postJson(`/api/voice/sessions/${activeVoiceSessionId}/end`, {
       endedAt: new Date().toISOString(),
-      savedSummary: shouldUseRealWebRtc()
+      savedSummary: activeVoiceUsedRealtime
         ? "Generated live voice test completed with Realtime events."
         : "Practiced one paced breathing cycle.",
-      transcriptOptIn: shouldUseRealWebRtc()
+      transcriptOptIn: activeVoiceUsedRealtime
     });
     voiceEndButton.hidden = true;
   } catch (error) {
@@ -1794,20 +1813,25 @@ async function endVoiceSession() {
   }
 }
 
+function closeVoiceConnection(connection) {
+  if (!connection) return;
+  connection.stream?.getTracks().forEach(track => track.stop());
+  try {
+    connection.dataChannel?.close();
+  } catch {
+    // Already closed.
+  }
+  try {
+    connection.peerConnection?.close();
+  } catch {
+    // Already closed.
+  }
+}
+
 function closeActiveVoiceConnection() {
-  if (!activeVoiceConnection) return;
-  activeVoiceConnection.stream?.getTracks().forEach(track => track.stop());
-  try {
-    activeVoiceConnection.dataChannel?.close();
-  } catch {
-    // Already closed.
-  }
-  try {
-    activeVoiceConnection.peerConnection?.close();
-  } catch {
-    // Already closed.
-  }
+  closeVoiceConnection(activeVoiceConnection);
   activeVoiceConnection = null;
+  activeVoiceUsedRealtime = false;
 }
 
 async function loadInsightsAndReview() {

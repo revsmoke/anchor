@@ -7,12 +7,13 @@ documentation
 Created the repo-level `README.md` for Anchor. The README describes the prototype, setup, database reset/seed workflow, normal app usage, OpenAI Realtime voice-agent activation, generated live-test seed data, test commands, vertical-slice dashboard artifacts, and troubleshooting.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/README.md` | New user/developer guide for setting up, using, testing, and operating Anchor Realtime/agent features. |
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Added and checked off the README documentation plan. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Recorded the visible `Use real OpenAI voice agent` checkbox as part of the live OpenAI slice. |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Indexed this context summary. |
+| `README.md` | New user/developer guide for setting up, using, testing, and operating Anchor Realtime/agent features. |
+| `PLAN.md` | Added and checked off the README documentation plan. |
+| `CAPABILITY_LEDGER.md` | Recorded the visible `Use real OpenAI voice agent` checkbox as part of the live OpenAI slice. |
+| `context_history/context_index.md` | Indexed this context summary. |
 
 ### Key Decisions
 - Documented the UI checkbox as the normal way to turn on the real OpenAI voice agent because that is the browser-visible control added for prototype users.
@@ -37,7 +38,7 @@ completed
 - Before private beta, run the README verification sequence again after any command/env changes.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/README.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/context_history/contexts/2026-04-29_anchor-live-openai-full-function-tests.md`
+- `README.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `context_history/contexts/2026-04-29_anchor-live-openai-full-function-tests.md`

@@ -10,19 +10,19 @@ Implemented Pass 3: onboarded users can submit a Quick Check-In, receive a deter
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added check-in and anchor-completion routes plus deterministic risk/next-action rules. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added quick check-in, safety event, and routine completion persistence methods. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added Quick Check-In and anchor-completion payload validation. |
-| `/Users/twoedge/Dev/dbt/db/migrations/004_quick_check_ins.sql` | Added quick_check_ins, safety_events, routine completion linkage, and daily-plan next-action status. |
-| `/Users/twoedge/Dev/dbt/scripts/db-reset.js` | Updated local reset to drop Pass 3 tables in dependency order. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Morning quick check-in UI and Safety Mode interruption surface. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added check-in card and Safety Mode styles. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added check-in submission, anchor completion, result rendering, and Safety Mode rendering. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass3-check-ins.test.js` | Added API tests for normal check-in, elevated safety fixture, anchor completion, and validation. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass3-check-in.spec.js` | Added browser tests for under-30-second happy path, validation, and Safety Mode rendering. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 3 capability evidence. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass3.json` | Dashboard state with Pass 0 through Pass 3 complete. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 3. |
+| `server/app.js` | Added check-in and anchor-completion routes plus deterministic risk/next-action rules. |
+| `server/db.js` | Added quick check-in, safety event, and routine completion persistence methods. |
+| `server/auth/validation.js` | Added Quick Check-In and anchor-completion payload validation. |
+| `db/migrations/004_quick_check_ins.sql` | Added quick_check_ins, safety_events, routine completion linkage, and daily-plan next-action status. |
+| `scripts/db-reset.js` | Updated local reset to drop Pass 3 tables in dependency order. |
+| `public/index.html` | Added Morning quick check-in UI and Safety Mode interruption surface. |
+| `public/css/app.css` | Added check-in card and Safety Mode styles. |
+| `public/js/app.js` | Added check-in submission, anchor completion, result rendering, and Safety Mode rendering. |
+| `tests/api/pass3-check-ins.test.js` | Added API tests for normal check-in, elevated safety fixture, anchor completion, and validation. |
+| `tests/browser/pass3-check-in.spec.js` | Added browser tests for under-30-second happy path, validation, and Safety Mode rendering. |
+| `CAPABILITY_LEDGER.md` | Added Pass 3 capability evidence. |
+| `vertical-slice-dashboard-anchor-pass3.json` | Dashboard state with Pass 0 through Pass 3 complete. |
+| `vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 3. |
 
 ### Key Decisions
 

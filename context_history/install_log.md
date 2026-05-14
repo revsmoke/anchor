@@ -12,7 +12,7 @@
 
 - Command: `bunx playwright install chromium`
 - Purpose: Install Chromium browser binaries needed for Playwright browser tests.
-- Install location: user Playwright cache under `/Users/twoedge/Library/Caches/ms-playwright`.
+- Install location: user Playwright cache under `<user-home>/Library/Caches/ms-playwright`.
 - Undo: run `bunx playwright uninstall chromium` or remove the corresponding Playwright cache entries.
 
 ## 2026-04-26 - Pass 1 password hashing

@@ -10,23 +10,23 @@ Implemented an opt-in live OpenAI verification slice for Anchor. The new workflo
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Active checklist for the full-function live OpenAI test slice. |
-| `/Users/twoedge/Dev/dbt/package.json` | Added `db:seed:live-test` and `test:openai:live`. |
-| `/Users/twoedge/Dev/dbt/server/config.js` | Added explicit live-test Realtime network opt-in. |
-| `/Users/twoedge/Dev/dbt/server/services/realtime.js` | Added timeout, safe error text, SDP normalization, call-id parsing preservation, and hangup status checks. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Updated Realtime session config to GA-style `audio.output.voice`. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Allowed offline routine completion and chain-analysis mutation types. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Fixed deletion order for completed check-ins referenced by routine instances. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Updated voice copy and added remote audio element. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added explicit live WebRTC mode, data channel event capture, generated-audio/mic flow, and cleanup. |
-| `/Users/twoedge/Dev/dbt/scripts/*live*` | Added env loading, seed generation, audio fixture generation, WebSocket smoke, and live test runner. |
-| `/Users/twoedge/Dev/dbt/tests/live/*` | Added opt-in live env, seeded API full-function, and Realtime WebSocket tests. |
-| `/Users/twoedge/Dev/dbt/tests/browser/live-openai-full-function.spec.js` | Added live browser WebRTC full-function workflow. |
-| `/Users/twoedge/Dev/dbt/playwright.config.js` | Made default browser verification port-aware. |
-| `/Users/twoedge/Dev/dbt/playwright.live.config.js` | Added Chromium live-test project with fake microphone/audio fixture flags. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added completed live OpenAI test slice. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded updated dashboard state. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added live OpenAI full-function test slice entry. |
+| `PLAN.md` | Active checklist for the full-function live OpenAI test slice. |
+| `package.json` | Added `db:seed:live-test` and `test:openai:live`. |
+| `server/config.js` | Added explicit live-test Realtime network opt-in. |
+| `server/services/realtime.js` | Added timeout, safe error text, SDP normalization, call-id parsing preservation, and hangup status checks. |
+| `server/app.js` | Updated Realtime session config to GA-style `audio.output.voice`. |
+| `server/auth/validation.js` | Allowed offline routine completion and chain-analysis mutation types. |
+| `server/db.js` | Fixed deletion order for completed check-ins referenced by routine instances. |
+| `public/index.html` | Updated voice copy and added remote audio element. |
+| `public/js/app.js` | Added explicit live WebRTC mode, data channel event capture, generated-audio/mic flow, and cleanup. |
+| `scripts/*live*` | Added env loading, seed generation, audio fixture generation, WebSocket smoke, and live test runner. |
+| `tests/live/*` | Added opt-in live env, seeded API full-function, and Realtime WebSocket tests. |
+| `tests/browser/live-openai-full-function.spec.js` | Added live browser WebRTC full-function workflow. |
+| `playwright.config.js` | Made default browser verification port-aware. |
+| `playwright.live.config.js` | Added Chromium live-test project with fake microphone/audio fixture flags. |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added completed live OpenAI test slice. |
+| `vertical-slice-dashboard.html` | Embedded updated dashboard state. |
+| `CAPABILITY_LEDGER.md` | Added live OpenAI full-function test slice entry. |
 
 ### Key Decisions
 

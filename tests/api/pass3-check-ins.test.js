@@ -169,8 +169,14 @@ function createMemoryCheckInDb() {
       anchor.completedAt = completion.completedAt;
       anchor.completedCheckInId = completion.checkInId;
 
-      const dailyPlan = dailyPlans.get(userId);
+      const dailyPlan = dailyPlans.get(userId) ?? {
+        id: `plan_${userId}`,
+        userId,
+        date: "2026-04-26",
+        nextBestStep: "Start your morning anchor."
+      };
       dailyPlan.nextBestStep = "Midday anchor is next.";
+      dailyPlans.set(userId, dailyPlan);
 
       return {
         anchor,

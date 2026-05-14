@@ -7,19 +7,20 @@ implementation
 Implemented a session-aware app shell so returning users no longer see the account card while authenticated bootstrap is pending. Added primary navigation, a compact menu control, logout, a Today-first guided view, and one-section-at-a-time product navigation.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added checking-session status, authenticated shell/nav/logout, and Today guided view. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added no-store bootstrap fetches, signed-out/signed-in shell state, guided view routing, menu toggling, and logout behavior. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Styled shell, nav/menu, guided transitions, and responsive menu behavior. |
-| `/Users/twoedge/Dev/dbt/public/service-worker.js` | Bumped app-shell cache to v2, deleted old caches, and changed app-shell fetches to network-first. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added `Cache-Control: no-store` to app bootstrap responses. |
-| `/Users/twoedge/Dev/dbt/tests/browser/*.spec.js` | Added session-shell coverage and updated feature tests to navigate intentionally. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass1-auth-consent.test.js` | Added bootstrap no-store assertion. |
-| `/Users/twoedge/Dev/dbt/README.md` | Documented Today-first navigation, menu, logout, and service-worker behavior. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Recorded completed session-shell/guided UX capability. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added hardening dashboard pass for session shell and guided UX. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded updated hardening dashboard state. |
+| `public/index.html` | Added checking-session status, authenticated shell/nav/logout, and Today guided view. |
+| `public/js/app.js` | Added no-store bootstrap fetches, signed-out/signed-in shell state, guided view routing, menu toggling, and logout behavior. |
+| `public/css/app.css` | Styled shell, nav/menu, guided transitions, and responsive menu behavior. |
+| `public/service-worker.js` | Bumped app-shell cache to v2, deleted old caches, and changed app-shell fetches to network-first. |
+| `server/app.js` | Added `Cache-Control: no-store` to app bootstrap responses. |
+| `tests/browser/*.spec.js` | Added session-shell coverage and updated feature tests to navigate intentionally. |
+| `tests/api/pass1-auth-consent.test.js` | Added bootstrap no-store assertion. |
+| `README.md` | Documented Today-first navigation, menu, logout, and service-worker behavior. |
+| `CAPABILITY_LEDGER.md` | Recorded completed session-shell/guided UX capability. |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added hardening dashboard pass for session shell and guided UX. |
+| `vertical-slice-dashboard.html` | Embedded updated hardening dashboard state. |
 
 ### Key Decisions
 - Bootstrap owns initial UI state: show `Checking your Anchor session...` until `/api/app/bootstrap` confirms whether a session exists.
@@ -50,6 +51,6 @@ completed
 - Live OpenAI browser coverage remains opt-in with `OPENAI_REALTIME_LIVE_TEST=1`.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/README.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
+- `PLAN.md`
+- `README.md`
+- `CAPABILITY_LEDGER.md`

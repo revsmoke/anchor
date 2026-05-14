@@ -7,10 +7,11 @@ planning
 Inspected the current Anchor auth, session, browser UI, tests, migration, readiness, and dashboard surfaces for the returning-user auth/password-reset slice. No application code was changed.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-04-30_anchor-returning-user-auth-pretask.md` | Durable pre-task verification report summary. |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Added this context summary to the index. |
+| `context_history/contexts/2026-04-30_anchor-returning-user-auth-pretask.md` | Durable pre-task verification report summary. |
+| `context_history/context_index.md` | Added this context summary to the index. |
 
 ### Key Decisions
 - Verification only: implementation was intentionally deferred.
