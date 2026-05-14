@@ -18,7 +18,7 @@ Completed the backend/data implementation review lane for Anchor. The review com
 ### Key Decisions
 - Kept the review non-invasive: no source code was modified.
 - Treated the current dirty worktree as the implementation state under review.
-- Focused findings on unimplemented V1 routes, deterministic placeholders, local-only stubs, environment gaps, and pseudo implementations.
+- Focused findings on unimplemented V1 routes, deterministic placeholders, local-only stubs, environment gaps, and pseudo-implementations.
 
 ### Technical Details
 High-impact findings included missing `GET /api/today`, `GET/PUT /api/safety-plan`, and `POST /api/safety-events`; deterministic coach/safety/insights/weekly-review behavior; placeholder voice `clientSecret.value`; JSON-only session exports with `shareUrl: null`; incomplete privacy export/delete semantics; storage-only offline sync; server `current_date` usage for user-day state; and API tests that assert prototype behavior via in-memory adapters.

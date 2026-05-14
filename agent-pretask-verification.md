@@ -140,7 +140,7 @@ Pre-existing modified/untracked paths observed include source, tests, docs, cont
 - Dirty baseline: a codebase/PRD/SPEC review must account for uncommitted source/test/doc changes already present. Avoid treating the current worktree as clean main.
 - Database dependency: unit/API tests likely require a local PostgreSQL database at `DATABASE_URL`, defaulting to `postgres://localhost:5432/anchor_local`.
 - Environment drift: `.env.example` shows `PORT=3700`, README examples use `3210`/`3212`, and `server/config.js` defaults to `3000`; review/test commands should set `PORT` and `APP_ORIGIN` explicitly.
-- Live OpenAI paths are environment and quota dependent; do not require them for ordinary review unless specifically in scope.
+- Live OpenAI paths are environment- and quota-dependent; do not require them for ordinary review unless specifically in scope.
 - Product domain is safety-sensitive DBT/mental-health support; PRD/SPEC review should scrutinize crisis copy, privacy/export/delete behavior, consent gates, and avoidance of therapy/emergency-care claims.
 - No lint/build scripts are declared, so syntax/style verification appears to rely on Bun tests, browser tests, and manual/static review.
 - Existing dashboard JSON/HTML artifacts are large generated review surfaces; confirm whether they are source-of-truth artifacts or derived status outputs before editing.

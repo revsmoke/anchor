@@ -28,3 +28,6 @@
 - 2026-05-13: [Anchor Repository Cleanup Checkpoint](contexts/2026-05-13_anchor-repository-cleanup-checkpoint.md)
 - 2026-05-13: [Anchor PR #1 Comment Resolution QA](contexts/2026-05-13_anchor-pr1-comment-resolution-qa.md)
 - 2026-05-13: [Anchor PR #1 Comment Resolution](contexts/2026-05-13_anchor-pr1-comment-resolution.md)
+- 2026-05-14: [Anchor PR #1 Plan Refinement](contexts/2026-05-14_anchor-pr1-plan-refinement.md)
+- 2026-05-14: [Anchor PR #1 Task 5/6 QA](contexts/2026-05-14_anchor-pr1-task5-6-qa.md)
+- 2026-05-14: [Anchor PR #1 Comment Resolution Final](contexts/2026-05-14_anchor-pr1-comment-resolution-final.md)

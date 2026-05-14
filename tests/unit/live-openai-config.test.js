@@ -93,6 +93,70 @@ describe("Realtime client live network behavior", () => {
 });
 
 describe("Realtime WebSocket smoke helper", () => {
+  function createFakeWebSocketHarness({ onConstruct } = {}) {
+    const instances = [];
+
+    class FakeWebSocket {
+      constructor(url, options) {
+        onConstruct?.(url, options);
+        this.url = url;
+        this.options = options;
+        this.listeners = new Map();
+        this.sent = [];
+        this.closeCalls = 0;
+        instances.push(this);
+      }
+
+      addEventListener(type, listener) {
+        const listeners = this.listeners.get(type) || [];
+        listeners.push(listener);
+        this.listeners.set(type, listeners);
+      }
+
+      send(payload) {
+        this.sent.push(payload);
+      }
+
+      close() {
+        this.closeCalls += 1;
+      }
+
+      emit(type, event = {}) {
+        for (const listener of this.listeners.get(type) || []) {
+          listener(event);
+        }
+      }
+    }
+
+    return { FakeWebSocket, instances };
+  }
+
+  function createDeferredObserver(promise) {
+    const observer = {
+      status: "pending",
+      value: undefined,
+      reason: undefined
+    };
+
+    promise.then(
+      value => {
+        observer.status = "resolved";
+        observer.value = value;
+      },
+      reason => {
+        observer.status = "rejected";
+        observer.reason = reason;
+      }
+    );
+
+    return observer;
+  }
+
+  async function flushMicrotasks() {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
   test("rejects immediately when the WebSocket constructor fails", async () => {
     class ThrowingWebSocket {
       constructor() {
@@ -104,5 +168,110 @@ describe("Realtime WebSocket smoke helper", () => {
       openaiApiKey: "sk-live-test-secret",
       realtimeModel: "gpt-realtime"
     }, ThrowingWebSocket)).rejects.toThrow("constructor failed");
+  });
+
+  test("rejects when the socket closes before readiness", async () => {
+    const { FakeWebSocket, instances } = createFakeWebSocketHarness();
+    const smoke = runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, FakeWebSocket);
+
+    instances[0].emit("close", { code: 1006, reason: "network reset" });
+
+    await expect(smoke).rejects.toThrow("Realtime WebSocket closed before ready (code 1006): network reset");
+  });
+
+  test("does not double-settle when the socket closes after readiness", async () => {
+    const { FakeWebSocket, instances } = createFakeWebSocketHarness();
+    const smoke = runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, FakeWebSocket);
+    const observer = createDeferredObserver(smoke);
+
+    instances[0].emit("message", {
+      data: JSON.stringify({ type: "session.created", session: { id: "sess_123" } })
+    });
+    instances[0].emit("close", { code: 1000, reason: "normal" });
+    await flushMicrotasks();
+
+    expect(observer.status).toBe("resolved");
+    expect(observer.value.connected).toBe(true);
+    expect(observer.value.events).toEqual([
+      { type: "session.created", session: { id: "sess_123" } }
+    ]);
+  });
+
+  test("rejects once when the WebSocket emits an error", async () => {
+    const { FakeWebSocket, instances } = createFakeWebSocketHarness();
+    const smoke = runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, FakeWebSocket);
+    const observer = createDeferredObserver(smoke);
+
+    instances[0].emit("error", new Error("low-level failure"));
+    instances[0].emit("message", {
+      data: JSON.stringify({ type: "session.created" })
+    });
+    await flushMicrotasks();
+
+    expect(observer.status).toBe("rejected");
+    expect(observer.reason.message).toBe("Realtime WebSocket connection failed.");
+  });
+
+  test("timeout rejects without waiting for the default live timeout", async () => {
+    const originalSetTimeout = globalThis.setTimeout;
+    const originalClearTimeout = globalThis.clearTimeout;
+    const observedDelays = [];
+
+    globalThis.setTimeout = (callback, delay) => {
+      observedDelays.push(delay);
+      queueMicrotask(callback);
+      return Symbol("timeout");
+    };
+    globalThis.clearTimeout = () => {};
+
+    try {
+      const { FakeWebSocket } = createFakeWebSocketHarness();
+      await expect(runRealtimeWebSocketSmoke({
+        openaiApiKey: "sk-live-test-secret",
+        realtimeModel: "gpt-realtime"
+      }, FakeWebSocket, { timeoutMs: 5 })).rejects.toThrow("Realtime WebSocket smoke timed out.");
+      expect(observedDelays).toEqual([5]);
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+      globalThis.clearTimeout = originalClearTimeout;
+    }
+  });
+
+  test("malformed JSON rejects with the parse error", async () => {
+    const { FakeWebSocket, instances } = createFakeWebSocketHarness();
+    const smoke = runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, FakeWebSocket);
+
+    instances[0].emit("message", { data: "{not json" });
+
+    await expect(smoke).rejects.toThrow(SyntaxError);
+  });
+
+  test("API error messages reject with the API message", async () => {
+    const { FakeWebSocket, instances } = createFakeWebSocketHarness();
+    const smoke = runRealtimeWebSocketSmoke({
+      openaiApiKey: "sk-live-test-secret",
+      realtimeModel: "gpt-realtime"
+    }, FakeWebSocket);
+
+    instances[0].emit("message", {
+      data: JSON.stringify({
+        type: "error",
+        error: { message: "model is unavailable" }
+      })
+    });
+
+    await expect(smoke).rejects.toThrow("model is unavailable");
   });
 });

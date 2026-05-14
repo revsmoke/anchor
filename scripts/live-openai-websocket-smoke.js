@@ -4,16 +4,17 @@ export function isRealtimeSessionReadyEvent(event) {
   return REALTIME_SESSION_READY_EVENTS.has(event?.type);
 }
 
-export async function runRealtimeWebSocketSmoke(config, WebSocketImpl = globalThis.WebSocket) {
+export async function runRealtimeWebSocketSmoke(config, WebSocketImpl = globalThis.WebSocket, options = {}) {
   const url = `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(config.realtimeModel)}`;
   const events = [];
+  const timeoutMs = options.timeoutMs ?? 20000;
 
   return new Promise((resolve, reject) => {
     let ws = null;
+    let settled = false;
     const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("Realtime WebSocket smoke timed out."));
-    }, 20000);
+      settle("reject", new Error("Realtime WebSocket smoke timed out."));
+    }, timeoutMs);
 
     function cleanup() {
       clearTimeout(timeout);
@@ -24,6 +25,20 @@ export async function runRealtimeWebSocketSmoke(config, WebSocketImpl = globalTh
       }
     }
 
+    function settle(type, value) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      if (type === "resolve") {
+        resolve(value);
+      } else {
+        reject(value);
+      }
+    }
+
     try {
       ws = new WebSocketImpl(url, {
         headers: {
@@ -31,8 +46,7 @@ export async function runRealtimeWebSocketSmoke(config, WebSocketImpl = globalTh
         }
       });
     } catch (error) {
-      cleanup();
-      reject(error);
+      settle("reject", error);
       return;
     }
 
@@ -55,21 +69,23 @@ export async function runRealtimeWebSocketSmoke(config, WebSocketImpl = globalTh
         const parsed = JSON.parse(String(event.data));
         events.push(parsed);
         if (isRealtimeSessionReadyEvent(parsed)) {
-          cleanup();
-          resolve({ connected: true, events });
+          settle("resolve", { connected: true, events: [...events] });
         } else if (parsed.type === "error") {
-          cleanup();
-          reject(new Error(parsed.error?.message || "Realtime WebSocket returned an error."));
+          settle("reject", new Error(parsed.error?.message || "Realtime WebSocket returned an error."));
         }
       } catch (error) {
-        cleanup();
-        reject(error);
+        settle("reject", error);
       }
     });
 
     ws.addEventListener("error", () => {
-      cleanup();
-      reject(new Error("Realtime WebSocket connection failed."));
+      settle("reject", new Error("Realtime WebSocket connection failed."));
+    });
+
+    ws.addEventListener("close", event => {
+      const code = event?.code ? ` (code ${event.code})` : "";
+      const reason = event?.reason ? `: ${event.reason}` : "";
+      settle("reject", new Error(`Realtime WebSocket closed before ready${code}${reason}`));
     });
   });
 }
