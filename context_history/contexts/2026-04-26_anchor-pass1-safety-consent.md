@@ -10,20 +10,20 @@ Implemented Pass 1 Safety and Consent Shell. Users can create a minimal account,
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added auth, current-user, logout, and consent routes. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added user, session, consent, and safety-plan persistence methods. |
-| `/Users/twoedge/Dev/dbt/server/auth/passwords.js` | Argon2 password hashing/verification. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Signup, login, and consent payload validation. |
-| `/Users/twoedge/Dev/dbt/server/http/cookies.js` | Session cookie read/set/clear helpers. |
-| `/Users/twoedge/Dev/dbt/db/migrations/002_auth_consent.sql` | Created users, sessions, consent_records, and safety_plans tables. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Safety and Consent Shell UI. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added consent form, crisis action, and status/error styling. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added account creation and consent-save client flow. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass1-auth-consent.test.js` | API tests for signup/login/me/logout/consent. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass1-consent.spec.js` | Browser tests for consent shell, validation, save flow, and Pass 0 regression. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 1 capability evidence. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass1.json` | Dashboard import/export state with Pass 0 and 1 complete. |
-| `/Users/twoedge/Dev/dbt/context_history/install_log.md` | Logged `@node-rs/argon2` installation. |
+| `server/app.js` | Added auth, current-user, logout, and consent routes. |
+| `server/db.js` | Added user, session, consent, and safety-plan persistence methods. |
+| `server/auth/passwords.js` | Argon2 password hashing/verification. |
+| `server/auth/validation.js` | Signup, login, and consent payload validation. |
+| `server/http/cookies.js` | Session cookie read/set/clear helpers. |
+| `db/migrations/002_auth_consent.sql` | Created users, sessions, consent_records, and safety_plans tables. |
+| `public/index.html` | Added Safety and Consent Shell UI. |
+| `public/css/app.css` | Added consent form, crisis action, and status/error styling. |
+| `public/js/app.js` | Added account creation and consent-save client flow. |
+| `tests/api/pass1-auth-consent.test.js` | API tests for signup/login/me/logout/consent. |
+| `tests/browser/pass1-consent.spec.js` | Browser tests for consent shell, validation, save flow, and Pass 0 regression. |
+| `CAPABILITY_LEDGER.md` | Added Pass 1 capability evidence. |
+| `vertical-slice-dashboard-anchor-pass1.json` | Dashboard import/export state with Pass 0 and 1 complete. |
+| `context_history/install_log.md` | Logged `@node-rs/argon2` installation. |
 
 ### Key Decisions
 

@@ -10,6 +10,8 @@ try {
   await sql`drop table if exists export_artifacts`;
   await sql`drop table if exists offline_mutations`;
   await sql`drop table if exists delete_requests`;
+  await sql`drop table if exists password_reset_tokens`;
+  await sql`drop table if exists daily_focus_plans`;
   await sql`drop table if exists privacy_exports`;
   await sql`drop table if exists user_settings`;
   await sql`drop table if exists session_packets`;

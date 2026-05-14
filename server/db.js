@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { REQUIRED_CONSENT_TYPES } from "./auth/validation.js";
 
 const DIARY_SCHEMA = {
   version: "v1",
@@ -134,6 +135,205 @@ export function createDb(databaseUrl) {
       return rows.map(consentFromRow);
     },
 
+    async getUserDailyTimezone(userId) {
+      const rows = await sql`
+        select coalesce(up.timezone, u.timezone) as timezone
+        from users u
+        left join user_profiles up on up.user_id = u.id
+        where u.id = ${userId}
+        limit 1
+      `;
+      return rows[0]?.timezone || "";
+    },
+
+    async getAppBootstrap(userId, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
+      const consents = await this.getConsentsForUser(userId);
+      const profileRows = await sql`
+        select id::text
+        from user_profiles
+        where user_id = ${userId}
+        limit 1
+      `;
+      const templateRows = await sql`
+        select id::text, type, target_time
+        from routine_templates
+        where user_id = ${userId}
+        order by case type when 'morning' then 1 when 'midday' then 2 else 3 end
+      `;
+      let todayRows = await sql`
+        select
+          ri.id::text,
+          ri.user_id::text,
+          ri.routine_template_id::text,
+          rt.type,
+          ri.target_time,
+          ri.status,
+          ri.completed_at,
+          ri.completed_check_in_id::text
+        from routine_instances ri
+        join routine_templates rt on rt.id = ri.routine_template_id
+        where ri.user_id = ${userId}
+          and ri.instance_date = ${localDate}
+        order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
+      `;
+      let dailyPlanRows = await sql`
+        select
+          id::text,
+          user_id::text,
+          plan_date,
+          next_best_step,
+          mode,
+          must_dos,
+          deferred_items,
+          regulation_action,
+          reset_history
+        from daily_plans
+        where user_id = ${userId}
+          and plan_date = ${localDate}
+        limit 1
+      `;
+      if (profileRows.length > 0 && templateRows.length === 3 && todayRows.length < templateRows.length) {
+        await sql.begin(async transaction => {
+          await transaction`
+            insert into routine_instances (user_id, routine_template_id, instance_date, target_time, status)
+            select ${userId}, rt.id, ${localDate}, rt.target_time, 'scheduled'
+            from routine_templates rt
+            where rt.user_id = ${userId}
+              and not exists (
+                select 1
+                from routine_instances ri
+                where ri.user_id = ${userId}
+                  and ri.routine_template_id = rt.id
+                  and ri.instance_date = ${localDate}
+              )
+          `;
+          await transaction`
+            insert into daily_plans (user_id, plan_date, next_best_step)
+            values (${userId}, ${localDate}, 'Start your morning anchor.')
+            on conflict (user_id, plan_date) do nothing
+          `;
+        });
+        todayRows = await sql`
+          select
+            ri.id::text,
+            ri.user_id::text,
+            ri.routine_template_id::text,
+            rt.type,
+            ri.target_time,
+            ri.status,
+            ri.completed_at,
+            ri.completed_check_in_id::text
+          from routine_instances ri
+          join routine_templates rt on rt.id = ri.routine_template_id
+          where ri.user_id = ${userId}
+            and ri.instance_date = ${localDate}
+          order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
+        `;
+        dailyPlanRows = await sql`
+          select
+            id::text,
+            user_id::text,
+            plan_date,
+            next_best_step,
+            mode,
+            must_dos,
+            deferred_items,
+            regulation_action,
+            reset_history
+          from daily_plans
+          where user_id = ${userId}
+            and plan_date = ${localDate}
+          limit 1
+        `;
+      }
+      const consentComplete = REQUIRED_CONSENT_TYPES.every(type =>
+        consents.some(consent => consent.type === type && consent.granted)
+      );
+      const onboardingComplete = profileRows.length > 0 && templateRows.length === 3;
+
+      return {
+        consents,
+        consentComplete,
+        onboardingComplete,
+        today: todayRows.map(routineInstanceFromRow),
+        dailyPlan: dailyPlanRows[0] ? dailyPlanFromRow(dailyPlanRows[0]) : null,
+        focusPlan: await this.getTodayFocusPlan(userId, options),
+        nextStep: !consentComplete ? "consent" : onboardingComplete ? "main_app" : "onboarding_profile"
+      };
+    },
+
+    async createPasswordResetToken(userId, reset) {
+      const rows = await sql`
+        insert into password_reset_tokens (
+          user_id,
+          token_hash,
+          request_metadata,
+          expires_at
+        )
+        values (
+          ${userId},
+          ${reset.tokenHash},
+          ${sql.json(reset.requestMetadata ?? {})},
+          ${reset.expiresAt}
+        )
+        returning id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+      `;
+      return passwordResetTokenFromRow(rows[0]);
+    },
+
+    async getActivePasswordResetTokens(userId) {
+      const rows = await sql`
+        select id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+        from password_reset_tokens
+        where user_id = ${userId}
+          and used_at is null
+          and locked_at is null
+          and attempt_count < 5
+          and expires_at > now()
+        order by created_at desc
+      `;
+      return rows.map(passwordResetTokenFromRow);
+    },
+
+    async recordPasswordResetFailure(userId) {
+      await sql`
+        update password_reset_tokens
+        set attempt_count = attempt_count + 1,
+            locked_at = case when attempt_count + 1 >= 5 then now() else locked_at end
+        where user_id = ${userId}
+          and used_at is null
+          and locked_at is null
+          and expires_at > now()
+      `;
+    },
+
+    async consumePasswordResetToken(userId, tokenId) {
+      const rows = await sql`
+        update password_reset_tokens
+        set used_at = now()
+        where id = ${tokenId}
+          and user_id = ${userId}
+          and used_at is null
+        returning id::text, user_id::text, token_hash, attempt_count, locked_at, expires_at, used_at
+      `;
+      return rows[0] ? passwordResetTokenFromRow(rows[0]) : null;
+    },
+
+    async updateUserPassword(userId, passwordHash) {
+      const rows = await sql`
+        update users
+        set password_hash = ${passwordHash}
+        where id = ${userId}
+        returning id::text, email, password_hash, timezone, locale, status
+      `;
+      return rows[0] ? userFromRow(rows[0]) : null;
+    },
+
+    async deleteSessionsForUser(userId) {
+      await sql`delete from sessions where user_id = ${userId}`;
+    },
+
     async saveUserProfile(userId, profile) {
       const rows = await sql`
         insert into user_profiles (
@@ -167,9 +367,10 @@ export function createDb(databaseUrl) {
       return profileFromRow(rows[0]);
     },
 
-    async saveRoutineSetup(userId, anchors) {
+    async saveRoutineSetup(userId, anchors, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
       await sql.begin(async transaction => {
-        await transaction`delete from routine_instances where user_id = ${userId} and instance_date = current_date`;
+        await transaction`delete from routine_instances where user_id = ${userId} and instance_date = ${localDate}`;
         await transaction`delete from routine_templates where user_id = ${userId}`;
 
         for (const anchor of anchors) {
@@ -180,13 +381,13 @@ export function createDb(databaseUrl) {
           `;
           await transaction`
             insert into routine_instances (user_id, routine_template_id, instance_date, target_time, status)
-            values (${userId}, ${templateRows[0].id}, current_date, ${anchor.targetTime}, 'scheduled')
+            values (${userId}, ${templateRows[0].id}, ${localDate}, ${anchor.targetTime}, 'scheduled')
           `;
         }
 
         await transaction`
           insert into daily_plans (user_id, plan_date, next_best_step)
-          values (${userId}, current_date, 'Start your morning anchor.')
+          values (${userId}, ${localDate}, 'Start your morning anchor.')
           on conflict (user_id, plan_date) do update set
             next_best_step = excluded.next_best_step,
             updated_at = now()
@@ -212,14 +413,14 @@ export function createDb(databaseUrl) {
         from routine_instances ri
         join routine_templates rt on rt.id = ri.routine_template_id
         where ri.user_id = ${userId}
-          and ri.instance_date = current_date
+          and ri.instance_date = ${localDate}
         order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
       `;
       const dailyPlanRows = await sql`
         select id::text, user_id::text, plan_date, next_best_step
         from daily_plans
         where user_id = ${userId}
-          and plan_date = current_date
+          and plan_date = ${localDate}
         limit 1
       `;
 
@@ -291,7 +492,8 @@ export function createDb(databaseUrl) {
       return safetyEventFromRow(rows[0]);
     },
 
-    async completeRoutineInstance(userId, anchorId, completion) {
+    async completeRoutineInstance(userId, anchorId, completion, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
       const rows = await sql`
         update routine_instances ri
         set
@@ -318,7 +520,7 @@ export function createDb(databaseUrl) {
       const nextBestStep = nextStepAfter(rows[0].type);
       const dailyPlanRows = await sql`
         insert into daily_plans (user_id, plan_date, next_best_step, next_action_status)
-        values (${userId}, current_date, ${nextBestStep}, 'accepted')
+        values (${userId}, ${localDate}, ${nextBestStep}, 'accepted')
         on conflict (user_id, plan_date) do update set
           next_best_step = excluded.next_best_step,
           next_action_status = excluded.next_action_status,
@@ -333,7 +535,8 @@ export function createDb(databaseUrl) {
       };
     },
 
-    async resetTodayPlan(userId, reset) {
+    async resetTodayPlan(userId, reset, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
       const currentPlanRows = await sql`
         select
           id::text,
@@ -347,7 +550,7 @@ export function createDb(databaseUrl) {
           reset_history
         from daily_plans
         where user_id = ${userId}
-          and plan_date = current_date
+          and plan_date = ${localDate}
         limit 1
       `;
       const currentPlan = currentPlanRows[0] ?? null;
@@ -382,7 +585,7 @@ export function createDb(databaseUrl) {
         )
         values (
           ${userId},
-          current_date,
+          ${localDate},
           ${nextBestStep},
           'accepted',
           ${reset.mode},
@@ -425,7 +628,7 @@ export function createDb(databaseUrl) {
         from routine_instances ri
         join routine_templates rt on rt.id = ri.routine_template_id
         where ri.user_id = ${userId}
-          and ri.instance_date = current_date
+          and ri.instance_date = ${localDate}
         order by case rt.type when 'morning' then 1 when 'midday' then 2 else 3 end
       `;
       const dailyPlan = dailyPlanFromRow(dailyPlanRows[0]);
@@ -435,6 +638,63 @@ export function createDb(databaseUrl) {
         anchors: anchorRows.map(routineInstanceFromRow),
         nextBestStep: dailyPlan.nextBestStep
       };
+    },
+
+    async getTodayFocusPlan(userId, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
+      const rows = await sql`
+        select
+          id::text,
+          user_id::text,
+          plan_date,
+          focus_text,
+          anticipated_hard_moment,
+          planned_skill,
+          created_at,
+          updated_at
+        from daily_focus_plans
+        where user_id = ${userId}
+          and plan_date = ${localDate}
+        limit 1
+      `;
+
+      return rows[0] ? focusPlanFromRow(rows[0]) : null;
+    },
+
+    async saveTodayFocusPlan(userId, focusPlan, options = {}) {
+      const localDate = options.localDate ?? sql`current_date`;
+      const rows = await sql`
+        insert into daily_focus_plans (
+          user_id,
+          plan_date,
+          focus_text,
+          anticipated_hard_moment,
+          planned_skill
+        )
+        values (
+          ${userId},
+          ${localDate},
+          ${focusPlan.focusText},
+          ${focusPlan.anticipatedHardMoment},
+          ${focusPlan.plannedSkill}
+        )
+        on conflict (user_id, plan_date) do update set
+          focus_text = excluded.focus_text,
+          anticipated_hard_moment = excluded.anticipated_hard_moment,
+          planned_skill = excluded.planned_skill,
+          updated_at = now()
+        returning
+          id::text,
+          user_id::text,
+          plan_date,
+          focus_text,
+          anticipated_hard_moment,
+          planned_skill,
+          created_at,
+          updated_at
+      `;
+
+      return focusPlanFromRow(rows[0]);
     },
 
     async getDiarySchema() {
@@ -1137,14 +1397,16 @@ export function createDb(databaseUrl) {
         await transaction`delete from voice_sessions where user_id = ${userId}`;
         await transaction`delete from session_packets where user_id = ${userId}`;
         await transaction`delete from privacy_exports where user_id = ${userId}`;
+        await transaction`delete from password_reset_tokens where user_id = ${userId}`;
         await transaction`delete from chain_analyses where user_id = ${userId}`;
         await transaction`delete from coach_messages where user_id = ${userId}`;
         await transaction`delete from agent_runs where user_id = ${userId}`;
         await transaction`delete from skill_sessions where user_id = ${userId}`;
         await transaction`delete from diary_entries where user_id = ${userId}`;
-        await transaction`delete from quick_check_ins where user_id = ${userId}`;
         await transaction`delete from routine_instances where user_id = ${userId}`;
+        await transaction`delete from quick_check_ins where user_id = ${userId}`;
         await transaction`delete from routine_templates where user_id = ${userId}`;
+        await transaction`delete from daily_focus_plans where user_id = ${userId}`;
         await transaction`delete from daily_plans where user_id = ${userId}`;
         await transaction`delete from user_settings where user_id = ${userId}`;
         await transaction`delete from user_profiles where user_id = ${userId}`;
@@ -1251,6 +1513,20 @@ function consentFromRow(row) {
   };
 }
 
+function passwordResetTokenFromRow(row) {
+  const expiresAt = row.expires_at ?? row.expiresAt;
+  const usedAt = row.used_at ?? row.usedAt;
+  return {
+    id: row.id,
+    userId: row.user_id ?? row.userId,
+    tokenHash: row.token_hash ?? row.tokenHash,
+    attemptCount: row.attempt_count ?? row.attemptCount ?? 0,
+    lockedAt: row.locked_at ?? row.lockedAt ?? null,
+    expiresAt: expiresAt instanceof Date ? expiresAt.toISOString() : expiresAt,
+    usedAt: usedAt instanceof Date ? usedAt.toISOString() : usedAt
+  };
+}
+
 function profileFromRow(row) {
   return {
     id: row.id,
@@ -1311,6 +1587,22 @@ function dailyPlanFromRow(row) {
   }
 
   return plan;
+}
+
+function focusPlanFromRow(row) {
+  const planDate = row.plan_date ?? row.planDate;
+  const createdAt = row.created_at ?? row.createdAt;
+  const updatedAt = row.updated_at ?? row.updatedAt;
+  return {
+    id: row.id,
+    userId: row.user_id ?? row.userId,
+    planDate: planDate instanceof Date ? planDate.toISOString().slice(0, 10) : String(planDate),
+    focusText: row.focus_text ?? row.focusText,
+    anticipatedHardMoment: row.anticipated_hard_moment ?? row.anticipatedHardMoment,
+    plannedSkill: row.planned_skill ?? row.plannedSkill,
+    ...(createdAt ? { createdAt: createdAt instanceof Date ? createdAt.toISOString() : createdAt } : {}),
+    ...(updatedAt ? { updatedAt: updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt } : {})
+  };
 }
 
 function quickCheckInFromRow(row) {

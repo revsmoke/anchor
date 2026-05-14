@@ -7,23 +7,24 @@ implementation
 Implemented Pass 5: Evening Diary Card as a vertical slice across HTML/CSS, vanilla JavaScript, Bun API routes, PostgreSQL migrations, and tests. The signed-in, consented, onboarded user can now complete a stable DBT diary card, save it for a date, reload it through the API, and see a next step plus top-target seed.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Pass 5 execution plan with completed checklist. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass5-diary-card.test.js` | RED/GREEN API coverage for diary schema, save/load, validation, and next-step payload. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass5-diary-card.spec.js` | RED/GREEN browser coverage for Full Diary Card save and validation. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass3-check-in.spec.js` | Updated quick check-in selectors after label ambiguity surfaced in regression tests. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Full Diary Card UI and tightened quick check-in labels to "Primary urge" and "Check-in note." |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added diary card form, fieldset, number input, and textarea styling. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added diary validation, PUT submission, and saved-result rendering. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added diary constants and payload validation. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added `GET /api/diary/:date` and `PUT /api/diary/:date`. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added diary schema retrieval and diary entry persistence methods. |
-| `/Users/twoedge/Dev/dbt/db/migrations/006_diary_card.sql` | Added diary schema, behavior targets, and diary entries tables. |
-| `/Users/twoedge/Dev/dbt/scripts/db-reset.js` | Added Pass 5 tables to reset drop order. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 5 capability ledger entry. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass5.json` | Pass 5 dashboard import artifact with Pass 0-5 marked done. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 5 complete. |
+| `PLAN.md` | Pass 5 execution plan with completed checklist. |
+| `tests/api/pass5-diary-card.test.js` | RED/GREEN API coverage for diary schema, save/load, validation, and next-step payload. |
+| `tests/browser/pass5-diary-card.spec.js` | RED/GREEN browser coverage for Full Diary Card save and validation. |
+| `tests/browser/pass3-check-in.spec.js` | Updated quick check-in selectors after label ambiguity surfaced in regression tests. |
+| `public/index.html` | Added Full Diary Card UI and tightened quick check-in labels to "Primary urge" and "Check-in note." |
+| `public/css/app.css` | Added diary card form, fieldset, number input, and textarea styling. |
+| `public/js/app.js` | Added diary validation, PUT submission, and saved-result rendering. |
+| `server/auth/validation.js` | Added diary constants and payload validation. |
+| `server/app.js` | Added `GET /api/diary/:date` and `PUT /api/diary/:date`. |
+| `server/db.js` | Added diary schema retrieval and diary entry persistence methods. |
+| `db/migrations/006_diary_card.sql` | Added diary schema, behavior targets, and diary entries tables. |
+| `scripts/db-reset.js` | Added Pass 5 tables to reset drop order. |
+| `CAPABILITY_LEDGER.md` | Added Pass 5 capability ledger entry. |
+| `vertical-slice-dashboard-anchor-pass5.json` | Pass 5 dashboard import artifact with Pass 0-5 marked done. |
+| `vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 5 complete. |
 
 ### Key Decisions
 - Kept Pass 5 deterministic and local: no AI coaching, skill recommendation engine, insights, exports, notifications, offline sync, or PWA hardening were added.
@@ -54,7 +55,7 @@ completed
 - Continue to preserve Pass 0-5 regression tests and update `vertical-slice-dashboard.html` after every pass.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `vertical-slice-dashboard.html`

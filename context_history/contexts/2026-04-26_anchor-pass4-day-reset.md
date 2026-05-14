@@ -10,18 +10,18 @@ Implemented Pass 4: onboarded users can apply a Planner / Day Reset, choose mini
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added `POST /api/today/reset` route. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added daily-plan reset persistence, anchor preservation return, reset history handling, and deterministic reset next-step rules. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added day-reset payload validation. |
-| `/Users/twoedge/Dev/dbt/db/migrations/005_day_reset.sql` | Added reset mode, must-dos, deferred items, regulation action, and reset history fields to `daily_plans`. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Planner / Day Reset UI with non-shaming missed-anchor copy. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added reset card to existing card styling. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added reset validation, submit handler, and reset result rendering. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass4-day-reset.test.js` | Added API tests for minimum viable day reset, validation, active session, and preserved anchors. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass4-day-reset.spec.js` | Added browser tests for missed-anchor copy, reset flow, and validation. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 4 capability evidence. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass4.json` | Dashboard state with Pass 0 through Pass 4 complete. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 4. |
+| `server/app.js` | Added `POST /api/today/reset` route. |
+| `server/db.js` | Added daily-plan reset persistence, anchor preservation return, reset history handling, and deterministic reset next-step rules. |
+| `server/auth/validation.js` | Added day-reset payload validation. |
+| `db/migrations/005_day_reset.sql` | Added reset mode, must-dos, deferred items, regulation action, and reset history fields to `daily_plans`. |
+| `public/index.html` | Added Planner / Day Reset UI with non-shaming missed-anchor copy. |
+| `public/css/app.css` | Added reset card to existing card styling. |
+| `public/js/app.js` | Added reset validation, submit handler, and reset result rendering. |
+| `tests/api/pass4-day-reset.test.js` | Added API tests for minimum viable day reset, validation, active session, and preserved anchors. |
+| `tests/browser/pass4-day-reset.spec.js` | Added browser tests for missed-anchor copy, reset flow, and validation. |
+| `CAPABILITY_LEDGER.md` | Added Pass 4 capability evidence. |
+| `vertical-slice-dashboard-anchor-pass4.json` | Dashboard state with Pass 0 through Pass 4 complete. |
+| `vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 4. |
 
 ### Key Decisions
 

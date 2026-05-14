@@ -10,19 +10,19 @@ Implemented Pass 2: consented users can enter basic profile rhythm and care-cont
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added profile and routine onboarding routes with required-consent gating. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added profile and routine persistence methods and response mappers. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added profile/routine payload validation and normalization. |
-| `/Users/twoedge/Dev/dbt/db/migrations/003_onboarding_routines.sql` | Created user profile, routine template, routine instance, and daily plan tables. |
-| `/Users/twoedge/Dev/dbt/scripts/db-reset.js` | Updated local reset to drop Pass 0-2 tables in dependency order. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added consent-gated onboarding and routine setup UI. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added onboarding styles and a global `[hidden]` rule for gated UI. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added onboarding validation, profile save, routine save, and result rendering. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass2-onboarding-routines.test.js` | Added API tests for profile save, consent preconditions, routine creation, and routine validation. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass2-onboarding.spec.js` | Added browser tests for gated onboarding, routine setup, and validation. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 2 capability evidence. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass2.json` | Dashboard import/export state with Pass 0, Pass 1, and Pass 2 complete. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 2. |
+| `server/app.js` | Added profile and routine onboarding routes with required-consent gating. |
+| `server/db.js` | Added profile and routine persistence methods and response mappers. |
+| `server/auth/validation.js` | Added profile/routine payload validation and normalization. |
+| `db/migrations/003_onboarding_routines.sql` | Created user profile, routine template, routine instance, and daily plan tables. |
+| `scripts/db-reset.js` | Updated local reset to drop Pass 0-2 tables in dependency order. |
+| `public/index.html` | Added consent-gated onboarding and routine setup UI. |
+| `public/css/app.css` | Added onboarding styles and a global `[hidden]` rule for gated UI. |
+| `public/js/app.js` | Added onboarding validation, profile save, routine save, and result rendering. |
+| `tests/api/pass2-onboarding-routines.test.js` | Added API tests for profile save, consent preconditions, routine creation, and routine validation. |
+| `tests/browser/pass2-onboarding.spec.js` | Added browser tests for gated onboarding, routine setup, and validation. |
+| `CAPABILITY_LEDGER.md` | Added Pass 2 capability evidence. |
+| `vertical-slice-dashboard-anchor-pass2.json` | Dashboard import/export state with Pass 0, Pass 1, and Pass 2 complete. |
+| `vertical-slice-dashboard.html` | Embedded dashboard default state updated through Pass 2. |
 
 ### Key Decisions
 

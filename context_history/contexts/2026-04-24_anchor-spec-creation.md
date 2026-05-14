@@ -10,13 +10,13 @@ Created an implementation-ready `SPEC.md` for Anchor from `PRD.md`, the `vertica
 
 | File | Purpose |
 | --- | --- |
-| `/Users/twoedge/Dev/dbt/SPEC.md` | Detailed technical specification, architecture, API contracts, data model, safety/privacy rules, and dashboard seed JSON. |
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Resumable execution checklist for this documentation task. |
-| `/Users/twoedge/Dev/dbt/review/pretask-spec-verification.md` | Delegated pre-task verification report. |
-| `/Users/twoedge/Dev/dbt/review/spec-qa.md` | Delegated QA report that identified required revisions. |
-| `/Users/twoedge/Dev/dbt/review/spec-qa-PLAN.md` | Delegated QA checklist. |
-| `/Users/twoedge/Dev/dbt/context_history/context_index.md` | Index entry for this session. |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-04-24_anchor-spec-creation.md` | This context summary. |
+| `SPEC.md` | Detailed technical specification, architecture, API contracts, data model, safety/privacy rules, and dashboard seed JSON. |
+| `PLAN.md` | Resumable execution checklist for this documentation task. |
+| `review/pretask-spec-verification.md` | Delegated pre-task verification report. |
+| `review/spec-qa.md` | Delegated QA report that identified required revisions. |
+| `review/spec-qa-PLAN.md` | Delegated QA checklist. |
+| `context_history/context_index.md` | Index entry for this session. |
+| `context_history/contexts/2026-04-24_anchor-spec-creation.md` | This context summary. |
 
 ### Key Decisions
 
@@ -53,8 +53,8 @@ completed
 
 ### Related Files
 
-- `/Users/twoedge/Dev/dbt/PRD.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html`
-- `/Users/twoedge/Dev/dbt/review/spec-qa.md`
-- `/Users/twoedge/Dev/dbt/review/pretask-spec-verification.md`
+- `PRD.md`
+- `SPEC.md`
+- `vertical-slice-dashboard.html`
+- `review/spec-qa.md`
+- `review/pretask-spec-verification.md`

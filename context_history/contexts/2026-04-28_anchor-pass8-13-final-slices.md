@@ -7,27 +7,28 @@ implementation
 Implemented Pass 8 through Pass 13 as one uninterrupted vertical-slice batch across HTML/CSS, vanilla JavaScript, Bun API routes, PostgreSQL migrations, deterministic local agent placeholders, Playwright tests, and dashboard tracking. The signed-in, consented, onboarded user can now use Chain Analysis, Live Voice Coach stub, Insights and Weekly Review, Session Prep Export, Privacy/Data Controls, Notification Settings, and Offline Queue Sync.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Pass 8-13 execution plan with completed checklist. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass8-13-final-slices.test.js` | API tests for all final passes. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass8-13-final-slices.spec.js` | Browser tests for all final pass flows. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added Chain, Voice, Insights, Packet, Privacy, Notification, and Offline UI sections. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added final slice cards and result/download styling. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added final slice client handlers, PATCH helper, render flows, and settings/offline payloads. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added validators for chain, voice, packets, settings, privacy, delete, and offline sync payloads. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added final slice API routes and deterministic handlers. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added PostgreSQL methods and mappers for final slice tables. |
-| `/Users/twoedge/Dev/dbt/db/migrations/009_chain_analysis.sql` | Added `chain_analyses`. |
-| `/Users/twoedge/Dev/dbt/db/migrations/010_voice_sessions.sql` | Added `voice_sessions`. |
-| `/Users/twoedge/Dev/dbt/db/migrations/011_insights_weekly.sql` | Added `weekly_reviews`. |
-| `/Users/twoedge/Dev/dbt/db/migrations/012_session_packets.sql` | Added `session_packets`. |
-| `/Users/twoedge/Dev/dbt/db/migrations/013_privacy_controls.sql` | Added settings, privacy export, and delete request tables. |
-| `/Users/twoedge/Dev/dbt/db/migrations/014_offline_pwa.sql` | Added `offline_mutations`. |
-| `/Users/twoedge/Dev/dbt/scripts/db-reset.js` | Added final slice tables to reset drop order. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added Pass 8-13 capability ledger entry. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-pass13.json` | Dashboard import artifact with Pass 0-13 marked done. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 13 complete. |
+| `PLAN.md` | Pass 8-13 execution plan with completed checklist. |
+| `tests/api/pass8-13-final-slices.test.js` | API tests for all final passes. |
+| `tests/browser/pass8-13-final-slices.spec.js` | Browser tests for all final pass flows. |
+| `public/index.html` | Added Chain, Voice, Insights, Packet, Privacy, Notification, and Offline UI sections. |
+| `public/css/app.css` | Added final slice cards and result/download styling. |
+| `public/js/app.js` | Added final slice client handlers, PATCH helper, render flows, and settings/offline payloads. |
+| `server/auth/validation.js` | Added validators for chain, voice, packets, settings, privacy, delete, and offline sync payloads. |
+| `server/app.js` | Added final slice API routes and deterministic handlers. |
+| `server/db.js` | Added PostgreSQL methods and mappers for final slice tables. |
+| `db/migrations/009_chain_analysis.sql` | Added `chain_analyses`. |
+| `db/migrations/010_voice_sessions.sql` | Added `voice_sessions`. |
+| `db/migrations/011_insights_weekly.sql` | Added `weekly_reviews`. |
+| `db/migrations/012_session_packets.sql` | Added `session_packets`. |
+| `db/migrations/013_privacy_controls.sql` | Added settings, privacy export, and delete request tables. |
+| `db/migrations/014_offline_pwa.sql` | Added `offline_mutations`. |
+| `scripts/db-reset.js` | Added final slice tables to reset drop order. |
+| `CAPABILITY_LEDGER.md` | Added Pass 8-13 capability ledger entry. |
+| `vertical-slice-dashboard-anchor-pass13.json` | Dashboard import artifact with Pass 0-13 marked done. |
+| `vertical-slice-dashboard.html` | Embedded dashboard `DEFAULT_STATE` updated to Pass 13 complete. |
 
 ### Key Decisions
 - Kept Pass 8-13 deterministic and local. No real OpenAI or Realtime call is made in these passes.
@@ -74,7 +75,7 @@ completed
 - Consider splitting the large vanilla JS file into small modules before adding more behavior.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `vertical-slice-dashboard.html`

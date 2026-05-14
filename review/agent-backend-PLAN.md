@@ -1,0 +1,9 @@
+- [x] Confirm repository structure and current working tree context without modifying source code.
+- [x] Read product/spec sources: PRD.md, SPEC.md, and CAPABILITY_LEDGER.md.
+- [x] Inspect backend entry/config/readiness files: server/app.js, server/db.js, server/config.js, and server/readiness.js.
+- [x] Inspect backend services and auth modules under server/services and server/auth.
+- [x] Inspect database migrations and seeds under db/migrations and db/seeds.
+- [x] Inspect API tests and compare asserted behavior against product/spec requirements.
+- [x] Identify gaps: unimplemented V1 behavior, deterministic placeholders, local-only stubs, environment gaps, pseudo implementations, route/table/service mismatches.
+- [x] Write final backend/data implementation review report to review/agent-backend-report.md under 500 lines.
+- [x] Re-read the report for consistency, route/table/service specificity, and line-count compliance.

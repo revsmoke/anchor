@@ -1,0 +1,7 @@
+- [x] Confirm repository context and locate the Pass 2 implementation plan without editing root files.
+- [x] Inspect current date/timezone usage in `server/db.js`, `server/app.js`, `public/js/app.js`, migrations, and tests.
+- [x] Identify daily-state routes and DB methods that accept, derive, store, or query dates.
+- [x] Derive the current timezone source of truth and note inconsistencies or gaps.
+- [x] Propose the safest helper/API design for Pass 2.
+- [x] List red tests to add before implementation.
+- [x] Write concise findings to `review/agent-pass2-timezone-report.md`.

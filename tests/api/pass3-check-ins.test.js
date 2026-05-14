@@ -25,6 +25,7 @@ function createMemoryCheckInDb() {
   const quickCheckIns = new Map();
   const safetyEvents = [];
   const dailyPlans = new Map();
+  const focusPlans = new Map();
 
   return {
     async checkHealth() {
@@ -84,6 +85,20 @@ function createMemoryCheckInDb() {
 
     async getConsentsForUser(userId) {
       return consents.get(userId) ?? [];
+    },
+
+    async getAppBootstrap(userId) {
+      const userConsents = consents.get(userId) ?? [];
+      const today = routineInstances.get(userId) ?? [];
+      return {
+        consents: userConsents,
+        consentComplete: true,
+        onboardingComplete: profiles.has(userId) && today.length === 3,
+        today,
+        dailyPlan: dailyPlans.get(userId) ?? null,
+        focusPlan: focusPlans.get(userId) ?? null,
+        nextStep: "main_app"
+      };
     },
 
     async saveUserProfile(userId, profile) {
@@ -154,14 +169,37 @@ function createMemoryCheckInDb() {
       anchor.completedAt = completion.completedAt;
       anchor.completedCheckInId = completion.checkInId;
 
-      const dailyPlan = dailyPlans.get(userId);
+      const dailyPlan = dailyPlans.get(userId) ?? {
+        id: `plan_${userId}`,
+        userId,
+        date: "2026-04-26",
+        nextBestStep: "Start your morning anchor."
+      };
       dailyPlan.nextBestStep = "Midday anchor is next.";
+      dailyPlans.set(userId, dailyPlan);
 
       return {
         anchor,
         dailyPlan,
         nextBestStep: dailyPlan.nextBestStep
       };
+    },
+
+    async getTodayFocusPlan(userId) {
+      return focusPlans.get(userId) ?? null;
+    },
+
+    async saveTodayFocusPlan(userId, focusPlan) {
+      const saved = {
+        id: focusPlans.get(userId)?.id ?? `focus_plan_${focusPlans.size + 1}`,
+        userId,
+        planDate: "2026-04-26",
+        focusText: focusPlan.focusText,
+        anticipatedHardMoment: focusPlan.anticipatedHardMoment,
+        plannedSkill: focusPlan.plannedSkill
+      };
+      focusPlans.set(userId, saved);
+      return saved;
     }
   };
 }
@@ -235,14 +273,14 @@ describe("Pass 3 quick check-ins and morning anchor completion", () => {
           note: "I can start small.",
           locationContext: "home",
           riskTier: "normal",
-          suggestedNextAction: {
-            type: "morning_anchor",
-            label: "Choose one focus and cope ahead."
-          }
+      suggestedNextAction: {
+        type: "morning_anchor",
+        label: "Pick one focus and make a cope-ahead plan."
+      }
         },
         suggestedNextAction: {
           type: "morning_anchor",
-          label: "Choose one focus and cope ahead."
+          label: "Pick one focus and make a cope-ahead plan."
         },
         riskTier: "normal"
       }
@@ -312,6 +350,53 @@ describe("Pass 3 quick check-ins and morning anchor completion", () => {
         },
         nextBestStep: "Midday anchor is next."
       }
+    });
+  });
+
+  test("focus plan requires auth, validates fields, upserts today, and appears in bootstrap", async () => {
+    const { app, cookie } = await onboardedApp();
+
+    const unauthorized = await app.fetch(jsonRequest("/api/today/focus-plan", {
+      focusText: "email therapist",
+      anticipatedHardMoment: "after lunch",
+      plannedSkill: "paced breathing"
+    }));
+    expect(unauthorized.status).toBe(401);
+
+    const invalid = await app.fetch(jsonRequest("/api/today/focus-plan", {
+      focusText: "",
+      anticipatedHardMoment: "after lunch",
+      plannedSkill: "paced breathing"
+    }, { cookie }));
+    expect(invalid.status).toBe(400);
+
+    const first = await app.fetch(jsonRequest("/api/today/focus-plan", {
+      focusText: "email therapist",
+      anticipatedHardMoment: "after lunch energy drop",
+      plannedSkill: "paced breathing before I open messages"
+    }, { cookie }));
+    const firstPayload = await first.json();
+    expect(first.status).toBe(201);
+    expect(firstPayload.data.focusText).toBe("email therapist");
+
+    const second = await app.fetch(jsonRequest("/api/today/focus-plan", {
+      focusText: "prepare dinner",
+      anticipatedHardMoment: "transition home",
+      plannedSkill: "STOP before entering the kitchen"
+    }, { cookie }));
+    const secondPayload = await second.json();
+    expect(second.status).toBe(201);
+    expect(secondPayload.data.id).toBe(firstPayload.data.id);
+    expect(secondPayload.data.focusText).toBe("prepare dinner");
+
+    const bootstrap = await app.fetch(request("/api/app/bootstrap", {
+      headers: { cookie }
+    }));
+    const bootstrapPayload = await bootstrap.json();
+    expect(bootstrapPayload.data.focusPlan).toMatchObject({
+      focusText: "prepare dinner",
+      anticipatedHardMoment: "transition home",
+      plannedSkill: "STOP before entering the kitchen"
     });
   });
 

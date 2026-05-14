@@ -1,0 +1,8 @@
+- [x] Confirm repository context and locate required review inputs.
+- [x] Do a lightweight memory/context pass for Anchor-specific risks and prior decisions.
+- [x] Read `IMPLEMENTATION_PLAN.md`, `PRD.md`, `SPEC.md`, `CAPABILITY_LEDGER.md`, and the four lane reports in `review/`.
+- [x] Compare the implementation plan against product requirements, technical specification, capability ledger, and lane findings.
+- [x] Identify missing high-priority gaps, contradictions, unsafe sequencing, and non-vertical-slice planning risks.
+- [x] Write the final QA report to `review/agent-final-plan-qa-report.md` in under 300 lines.
+- [x] Re-read the report and verify it is scoped to plan QA, under 300 lines, and does not modify source code or the implementation plan.
+- [x] Perform required end-of-session project history update without changing source code or the implementation plan.

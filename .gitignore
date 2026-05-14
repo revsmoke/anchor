@@ -3,4 +3,7 @@ node_modules/
 test-results/
 playwright-report/
 .playwright-cli/
+.playwright-mcp/
 .DS_Store
+.anchor-data/
+tests/fixtures/live-openai-audio.wav

@@ -1,0 +1,7 @@
+- [x] Confirm the review lane files and target artifacts are present.
+- [x] Inspect `vertical-slice-dashboard.html` for controls, labels, static dashboard claims, and non-backed interactions.
+- [x] Inspect `vertical-slice-dashboard-anchor-pass13.json` and `vertical-slice-dashboard-anchor-hardening.json` for asserted dashboard anchors/states that may not map to implementation.
+- [x] Inspect `public/index.html`, `public/js/app.js`, and `public/css/app.css` for UI controls, state text, static artifacts, and pseudo-functionality.
+- [x] Cross-check findings across HTML, JS, CSS, and anchor JSON to separate supported flows from likely unsupported or untested claims.
+- [x] Write `review/agent-ui-pseudo-report.md` with specific file paths and line numbers where possible, under 500 lines.
+- [x] Re-read the report and update this plan with completed steps.

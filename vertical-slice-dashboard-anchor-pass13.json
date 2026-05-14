@@ -1,5 +1,55 @@
 {
   "projectName": "Anchor",
+  "evidence": {
+    "schemaVersion": "anchor-evidence-v1",
+    "updatedAt": "2026-05-12",
+    "purpose": "Label Pass 0-13 prototype and fixture surfaces without changing SPEC dashboard status values.",
+    "labels": [
+      {
+        "label": "prototype",
+        "surfaces": [
+          "text coach deterministic local replies",
+          "skill timer static running state",
+          "voice controls without full mute/reconnect/listening UI",
+          "privacy controls without complete V1 recent-auth/delete matrix"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md",
+          "review/agent-backend-report.md"
+        ]
+      },
+      {
+        "label": "settings-only",
+        "surfaces": [
+          "notifications preferences and quiet hours without browser permission, push subscription, or delivery"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md"
+        ]
+      },
+      {
+        "label": "demo-fixture",
+        "surfaces": [
+          "offline capture synthetic mutation tester",
+          "insights and exports using April 2026 seeded demo dates"
+        ],
+        "evidence": [
+          "review/agent-ui-pseudo-report.md"
+        ]
+      },
+      {
+        "label": "blocked",
+        "surfaces": [
+          "therapist sharing share links",
+          "passcode app lock",
+          "clinical/legal review gates"
+        ],
+        "evidence": [
+          "IMPLEMENTATION_PLAN.md Gate 0"
+        ]
+      }
+    ]
+  },
   "passes": [
     {
       "name": "Walking Skeleton",

@@ -5,9 +5,37 @@ const errorEl = document.querySelector("#snapshot-error");
 const productEl = document.querySelector("[data-testid='snapshot-product']");
 const dateEl = document.querySelector("[data-testid='snapshot-date']");
 const summaryEl = document.querySelector("[data-testid='snapshot-summary']");
-const consentForm = document.querySelector("#consent-form");
-const consentErrorEl = document.querySelector("#consent-error");
-const consentStatusEl = document.querySelector("#consent-status");
+const appShellEl = document.querySelector(".app-shell");
+const appBootStatusEl = document.querySelector("#app-boot-status");
+const authenticatedShellEl = document.querySelector("#authenticated-shell");
+const currentViewLabelEl = document.querySelector("#current-view-label");
+const appMenuToggleButton = document.querySelector("#app-menu-toggle");
+const primaryNavEl = document.querySelector("#primary-nav");
+const logoutButton = document.querySelector("#logout-button");
+const viewTargetButtons = [...document.querySelectorAll("[data-view-target]")];
+const authSection = document.querySelector("#auth-section");
+const authForm = document.querySelector("#auth-form");
+const authModeSignInButton = document.querySelector("#auth-mode-signin");
+const authModeSignUpButton = document.querySelector("#auth-mode-signup");
+const authHeadingEl = document.querySelector("#auth-heading");
+const authCopyEl = document.querySelector("#auth-copy");
+const authFieldsEl = document.querySelector("#auth-fields");
+const signupConsentsEl = document.querySelector("#signup-consents");
+const authSubmitButton = document.querySelector("#auth-submit");
+const forgotPasswordOpenButton = document.querySelector("#forgot-password-open");
+const authErrorEl = document.querySelector("#auth-error");
+const authStatusEl = document.querySelector("#auth-status");
+const passwordResetDialog = document.querySelector("#password-reset-dialog");
+const passwordResetRequestForm = document.querySelector("#password-reset-request-form");
+const passwordResetConfirmForm = document.querySelector("#password-reset-confirm-form");
+const passwordResetCloseButton = document.querySelector("#password-reset-close");
+const resetEmailEl = document.querySelector("#reset-email");
+const resetCodeEl = document.querySelector("#reset-code");
+const resetNewPasswordEl = document.querySelector("#reset-new-password");
+const resetCodePanelEl = document.querySelector("#reset-code-panel");
+const resetDevCodeEl = document.querySelector("#reset-dev-code");
+const passwordResetErrorEl = document.querySelector("#password-reset-error");
+const passwordResetStatusEl = document.querySelector("#password-reset-status");
 const onboardingSection = document.querySelector("#onboarding-section");
 const onboardingForm = document.querySelector("#onboarding-form");
 const onboardingErrorEl = document.querySelector("#onboarding-error");
@@ -15,6 +43,12 @@ const onboardingStatusEl = document.querySelector("#onboarding-status");
 const routineResultEl = document.querySelector("#routine-result");
 const anchorListEl = document.querySelector("[data-testid='anchor-list']");
 const nextBestStepEl = document.querySelector("#next-best-step");
+const todaySection = document.querySelector("#today-section");
+const anchorProgressEl = document.querySelector("#anchor-progress");
+const focusPlanSummaryEl = document.querySelector("#focus-plan-summary");
+const focusSummaryFocusEl = document.querySelector("#focus-summary-focus");
+const focusSummaryMomentEl = document.querySelector("#focus-summary-moment");
+const focusSummarySkillEl = document.querySelector("#focus-summary-skill");
 const checkInSection = document.querySelector("#check-in-section");
 const checkInForm = document.querySelector("#check-in-form");
 const checkInErrorEl = document.querySelector("#check-in-error");
@@ -24,6 +58,19 @@ const suggestedActionEl = document.querySelector("#suggested-action");
 const completionNextStepEl = document.querySelector("#completion-next-step");
 const safetyModeEl = document.querySelector("#safety-mode");
 const safetyModeMessageEl = document.querySelector("#safety-mode-message");
+const focusPlanSection = document.querySelector("#focus-plan-section");
+const focusPlanForm = document.querySelector("#focus-plan-form");
+const focusTextEl = document.querySelector("#focus-text");
+const anticipatedHardMomentEl = document.querySelector("#anticipated-hard-moment");
+const plannedSkillEl = document.querySelector("#planned-skill");
+const focusPlanErrorEl = document.querySelector("#focus-plan-error");
+const focusPlanStatusEl = document.querySelector("#focus-plan-status");
+const middaySection = document.querySelector("#midday-section");
+const middayForm = document.querySelector("#midday-form");
+const middayErrorEl = document.querySelector("#midday-error");
+const middayStatusEl = document.querySelector("#midday-status");
+const middayResultEl = document.querySelector("#midday-result");
+const middayNextStepEl = document.querySelector("#midday-next-step");
 const resetSection = document.querySelector("#reset-section");
 const resetForm = document.querySelector("#reset-form");
 const resetErrorEl = document.querySelector("#reset-error");
@@ -86,10 +133,13 @@ const chainPreventionPlanEl = document.querySelector("#chain-prevention-plan");
 const voiceSection = document.querySelector("#voice-section");
 const voiceForm = document.querySelector("#voice-form");
 const voiceEndButton = document.querySelector("#voice-end");
+const voiceUseLiveAgentEl = document.querySelector("#voice-use-live-agent");
+const voiceLiveAvailabilityEl = document.querySelector("#voice-live-availability");
 const voiceErrorEl = document.querySelector("#voice-error");
 const voiceStatusEl = document.querySelector("#voice-status");
 const voicePreviewEl = document.querySelector("#voice-preview");
 const voiceEndStatusEl = document.querySelector("#voice-end-status");
+const voiceRemoteAudioEl = document.querySelector("#voice-remote-audio");
 const insightsSection = document.querySelector("#insights-section");
 const insightsLoadButton = document.querySelector("#insights-load");
 const insightsErrorEl = document.querySelector("#insights-error");
@@ -121,20 +171,76 @@ const offlineErrorEl = document.querySelector("#offline-error");
 const offlineStatusEl = document.querySelector("#offline-status");
 
 let morningAnchorId = "";
+let middayAnchorId = "";
+let todayAnchors = [];
 let allSkills = [];
 let activeSkill = null;
 let activeSkillStartedAt = "";
 let activeSkillModule = "";
 let activeChainId = "";
 let activeVoiceSessionId = "";
+let activeVoiceConnection = null;
+let activeVoiceUsedRealtime = false;
 let activeDeleteRequestId = "";
 let csrfToken = "";
+let publicConfig = null;
+let authMode = "signin";
+let currentView = "today";
 
+const guidedSections = {
+  today: { element: todaySection, label: "Today" },
+  "check-in": { element: checkInSection, label: "Check-in" },
+  "focus-plan": { element: focusPlanSection, label: "Focus Plan" },
+  midday: { element: middaySection, label: "Midday" },
+  reset: { element: resetSection, label: "Reset Today" },
+  diary: { element: diarySection, label: "Diary Card" },
+  skills: { element: skillsSection, label: "Skills" },
+  coach: { element: coachSection, label: "Coach" },
+  chain: { element: chainSection, label: "Chain Analysis" },
+  voice: { element: voiceSection, label: "Voice" },
+  insights: { element: insightsSection, label: "Insights" },
+  packet: { element: packetSection, label: "Exports" },
+  privacy: { element: privacySection, label: "Privacy" },
+  offline: { element: offlineSection, label: "Offline" }
+};
+
+loadPublicConfig();
 loadTodaySnapshot();
+renderAuthMode();
+setSessionChecking(true);
+bootstrapAuthenticatedUser({ silent: true, hideAuth: true });
 registerServiceWorker();
-consentForm.addEventListener("submit", saveConsent);
+authForm.addEventListener("submit", handleAuthSubmit);
+authModeSignInButton.addEventListener("click", () => {
+  authMode = "signin";
+  renderAuthMode();
+});
+authModeSignUpButton.addEventListener("click", () => {
+  authMode = "signup";
+  renderAuthMode();
+});
+forgotPasswordOpenButton.addEventListener("click", openPasswordResetDialog);
+passwordResetCloseButton.addEventListener("click", closePasswordResetDialog);
+passwordResetDialog.addEventListener("close", () => {
+  passwordResetDialog.hidden = true;
+});
+passwordResetRequestForm.addEventListener("submit", requestPasswordReset);
+passwordResetConfirmForm.addEventListener("submit", confirmPasswordReset);
+appMenuToggleButton.addEventListener("click", togglePrimaryNav);
+logoutButton.addEventListener("click", logout);
+viewTargetButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    showGuidedView(button.dataset.viewTarget);
+    closePrimaryNav();
+  });
+});
+window.addEventListener("hashchange", () => {
+  showGuidedView(viewFromHash(), { updateHash: false });
+});
 onboardingForm.addEventListener("submit", saveOnboarding);
 checkInForm.addEventListener("submit", saveQuickCheckIn);
+focusPlanForm.addEventListener("submit", saveFocusPlan);
+middayForm.addEventListener("submit", saveMiddayCheckIn);
 resetForm.addEventListener("submit", saveDayReset);
 diaryForm.addEventListener("submit", saveDiaryCard);
 coachForm.addEventListener("submit", sendCoachMessage);
@@ -162,7 +268,7 @@ skillModuleButtons.forEach(button => {
 
 async function loadTodaySnapshot() {
   try {
-    const response = await fetch("/api/today/snapshot");
+    const response = await fetch("/api/today/snapshot", { cache: "no-store" });
     const payload = await response.json();
 
     if (!response.ok || !payload.ok) {
@@ -173,6 +279,31 @@ async function loadTodaySnapshot() {
   } catch (error) {
     renderError(error.message || "Today snapshot is unavailable.");
   }
+}
+
+async function loadPublicConfig() {
+  try {
+    const response = await fetch("/api/config/public", { cache: "no-store" });
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) throw new Error("Public config unavailable.");
+    publicConfig = payload.data;
+    renderVoiceAvailability();
+  } catch {
+    publicConfig = { voice: { liveRealtimeAvailable: false } };
+    renderVoiceAvailability();
+  }
+}
+
+function renderVoiceAvailability() {
+  const available = publicConfig?.voice?.liveRealtimeAvailable === true;
+  if (!available) {
+    localStorage.removeItem("anchor_live_webrtc");
+  }
+  voiceUseLiveAgentEl.disabled = !available;
+  voiceUseLiveAgentEl.checked = available && localStorage.getItem("anchor_live_webrtc") === "1";
+  voiceLiveAvailabilityEl.textContent = available
+    ? `Real OpenAI voice agent available (${publicConfig.voice.realtimeModel}).`
+    : "Real OpenAI voice agent unavailable: start the server with OPENAI_API_KEY to enable it.";
 }
 
 function renderSnapshot(snapshot) {
@@ -202,25 +333,117 @@ async function registerServiceWorker() {
   }
 }
 
-async function saveConsent(event) {
-  event.preventDefault();
-  hideConsentMessages();
+function renderAuthMode() {
+  const isSignup = authMode === "signup";
+  const isConsentCompletion = authMode === "consent";
+  authModeSignInButton.setAttribute("aria-pressed", String(!isSignup));
+  authModeSignUpButton.setAttribute("aria-pressed", String(isSignup));
+  authModeSignInButton.disabled = isConsentCompletion;
+  authModeSignUpButton.disabled = isConsentCompletion;
+  authFieldsEl.hidden = isConsentCompletion;
+  signupConsentsEl.hidden = !(isSignup || isConsentCompletion);
+  forgotPasswordOpenButton.hidden = isSignup || isConsentCompletion;
+  authSubmitButton.textContent = isConsentCompletion
+    ? "Save consent"
+    : isSignup ? "Create account and save consent" : "Sign in";
+  authHeadingEl.textContent = isConsentCompletion
+    ? "Complete consent"
+    : isSignup ? "Start with Anchor" : "Welcome back";
+  authCopyEl.textContent = isConsentCompletion
+    ? "Confirm the required consent choices to continue with this account."
+    : isSignup
+    ? "Create your account, confirm consent, and set up your first daily anchors."
+    : "Sign in with the email and password you used to start Anchor.";
+  document.querySelector("#password").setAttribute("autocomplete", isSignup ? "new-password" : "current-password");
+  hideAuthMessages();
+}
 
-  const formData = new FormData(consentForm);
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+  if (authMode === "consent") {
+    await saveConsentForCurrentSession();
+    return;
+  }
+  if (authMode === "signup") {
+    await createAccountAndConsent();
+    return;
+  }
+  await signIn();
+}
+
+async function saveConsentForCurrentSession() {
+  hideAuthMessages();
+  const crisis = document.querySelector("#consent-crisis").checked;
+  const privacy = document.querySelector("#consent-privacy").checked;
+  const voice = document.querySelector("#consent-voice").checked;
+  const localError = validateConsentChoices({ crisis, privacy, voice });
+  if (localError) {
+    renderAuthError(localError);
+    return;
+  }
+
+  authSubmitButton.disabled = true;
+  try {
+    await postJson("/api/onboarding/consent", {
+      consents: [
+        { type: "crisis_limits", granted: crisis },
+        { type: "privacy_choices", granted: privacy },
+        { type: "voice_audio", granted: voice }
+      ]
+    });
+    authSection.hidden = true;
+    onboardingStatusEl.hidden = false;
+    onboardingStatusEl.textContent = "Consent saved. Next: onboarding setup.";
+    onboardingSection.hidden = false;
+  } catch (error) {
+    renderAuthError(error.message || "Consent could not be saved.");
+  } finally {
+    authSubmitButton.disabled = false;
+  }
+}
+
+async function signIn() {
+  hideAuthMessages();
+  const formData = new FormData(authForm);
+  const email = String(formData.get("email") || "").trim();
+  const password = String(formData.get("password") || "");
+  const localError = validateSignInForm({ email, password });
+  if (localError) {
+    renderAuthError(localError);
+    return;
+  }
+
+  authSubmitButton.disabled = true;
+  try {
+    await postJson("/api/auth/login", { email, password });
+    await ensureCsrfToken();
+    authStatusEl.hidden = false;
+    authStatusEl.textContent = "Signed in. Welcome back.";
+    await bootstrapAuthenticatedUser({ silent: false, hideAuth: true });
+  } catch (error) {
+    renderAuthError(error.message || "Sign in could not be completed.");
+  } finally {
+    authSubmitButton.disabled = false;
+  }
+}
+
+async function createAccountAndConsent() {
+  hideAuthMessages();
+
+  const formData = new FormData(authForm);
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const crisis = document.querySelector("#consent-crisis").checked;
   const privacy = document.querySelector("#consent-privacy").checked;
   const voice = document.querySelector("#consent-voice").checked;
 
-  const localError = validateConsentForm({ email, password, crisis, privacy, voice });
+  const localError = validateSignupForm({ email, password, crisis, privacy, voice });
   if (localError) {
-    renderConsentError(localError);
+    renderAuthError(localError);
     return;
   }
 
-  const submitButton = consentForm.querySelector("button");
-  submitButton.disabled = true;
+  authSubmitButton.disabled = true;
 
   try {
     await postJson("/api/auth/signup", {
@@ -239,14 +462,269 @@ async function saveConsent(event) {
       ]
     });
 
-    consentStatusEl.hidden = false;
-    consentStatusEl.textContent = "Consent saved. Next: onboarding setup.";
+    authSection.hidden = true;
+    onboardingStatusEl.hidden = false;
+    onboardingStatusEl.textContent = "Consent saved. Next: onboarding setup.";
     onboardingSection.hidden = false;
   } catch (error) {
-    renderConsentError(error.message || "Consent could not be saved.");
+    renderAuthError(error.message || "Consent could not be saved.");
+  } finally {
+    authSubmitButton.disabled = false;
+  }
+}
+
+async function bootstrapAuthenticatedUser({ silent = false, hideAuth = false } = {}) {
+  try {
+    const bootstrap = await getJson("/api/app/bootstrap");
+    renderBootstrapState(bootstrap, { hideAuth });
+    return bootstrap;
+  } catch (error) {
+    if (!silent) renderAuthError(error.message || "Account state could not be loaded.");
+    renderSignedOut();
+    return null;
+  }
+}
+
+function renderBootstrapState(bootstrap, { hideAuth = false } = {}) {
+  if (bootstrap.authenticated === false) {
+    renderSignedOut();
+    return;
+  }
+
+  appBootStatusEl.hidden = true;
+
+  if (hideAuth && bootstrap.nextStep !== "consent") {
+    authSection.hidden = true;
+  }
+
+  if (bootstrap.nextStep === "consent") {
+    authenticatedShellEl.hidden = true;
+    hideGuidedSections();
+    onboardingSection.hidden = true;
+    authSection.hidden = false;
+    authMode = "consent";
+    renderAuthMode();
+    renderAuthError("Required consent must be saved before continuing.");
+    return;
+  }
+
+  if (bootstrap.nextStep === "onboarding_profile") {
+    authenticatedShellEl.hidden = true;
+    authSection.hidden = true;
+    hideGuidedSections();
+    onboardingSection.hidden = false;
+    return;
+  }
+
+  if (bootstrap.nextStep === "main_app") {
+    renderRoutineSetup({
+      today: bootstrap.today,
+      dailyPlan: bootstrap.dailyPlan || { nextBestStep: "Start your morning anchor." }
+    });
+  }
+}
+
+function setSessionChecking(isChecking) {
+  appShellEl.dataset.appState = isChecking ? "booting" : "ready";
+  appBootStatusEl.hidden = !isChecking;
+  if (isChecking) {
+    authSection.hidden = true;
+    authenticatedShellEl.hidden = true;
+    onboardingSection.hidden = true;
+    hideGuidedSections();
+  }
+}
+
+function renderSignedOut(message = "") {
+  setSessionChecking(false);
+  authenticatedShellEl.hidden = true;
+  onboardingSection.hidden = true;
+  hideGuidedSections();
+  authSection.hidden = false;
+  authMode = "signin";
+  renderAuthMode();
+  if (message) {
+    authStatusEl.hidden = false;
+    authStatusEl.textContent = message;
+  }
+}
+
+function showAuthenticatedShell() {
+  setSessionChecking(false);
+  authenticatedShellEl.hidden = false;
+}
+
+function togglePrimaryNav() {
+  const expanded = appMenuToggleButton.getAttribute("aria-expanded") === "true";
+  appMenuToggleButton.setAttribute("aria-expanded", String(!expanded));
+  primaryNavEl.classList.toggle("is-open", !expanded);
+}
+
+function closePrimaryNav() {
+  appMenuToggleButton.setAttribute("aria-expanded", "false");
+  primaryNavEl.classList.remove("is-open");
+}
+
+function hideGuidedSections() {
+  Object.values(guidedSections).forEach(({ element }) => {
+    element.hidden = true;
+    element.classList.remove("guided-section-active");
+  });
+}
+
+function viewFromHash() {
+  const value = location.hash.replace(/^#/, "");
+  return guidedSections[value] ? value : "";
+}
+
+function showGuidedView(view, { updateHash = true, replaceHash = false } = {}) {
+  if (!guidedSections[view]) return;
+  currentView = view;
+  if (updateHash && location.hash !== `#${view}`) {
+    if (replaceHash) {
+      history.replaceState({ view }, "", `#${view}`);
+    } else {
+      history.pushState({ view }, "", `#${view}`);
+    }
+  }
+  hideGuidedSections();
+  const section = guidedSections[view];
+  section.element.hidden = false;
+  section.element.classList.add("guided-section-active");
+  currentViewLabelEl.textContent = section.label;
+  viewTargetButtons.forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.viewTarget === view));
+  });
+}
+
+async function logout() {
+  logoutButton.disabled = true;
+  try {
+    await ensureCsrfToken();
+    await postJson("/api/auth/logout", {});
+    csrfToken = "";
+    currentView = "today";
+    closePrimaryNav();
+    renderSignedOut("Signed out.");
+  } catch (error) {
+    currentViewLabelEl.textContent = error.message || "Logout could not be completed.";
+  } finally {
+    logoutButton.disabled = false;
+  }
+}
+
+function openPasswordResetDialog() {
+  hidePasswordResetMessages();
+  passwordResetDialog.hidden = false;
+  resetEmailEl.value = document.querySelector("#email").value;
+  resetCodeEl.value = "";
+  resetNewPasswordEl.value = "";
+  resetCodePanelEl.hidden = true;
+  resetDevCodeEl.textContent = "";
+  passwordResetConfirmForm.hidden = true;
+  if (typeof passwordResetDialog.showModal === "function") {
+    passwordResetDialog.showModal();
+  } else {
+    passwordResetDialog.setAttribute("open", "");
+  }
+  resetEmailEl.focus();
+}
+
+function closePasswordResetDialog() {
+  if (passwordResetDialog.open && typeof passwordResetDialog.close === "function") {
+    passwordResetDialog.close();
+    return;
+  }
+  passwordResetDialog.hidden = true;
+  passwordResetDialog.removeAttribute("open");
+}
+
+async function requestPasswordReset(event) {
+  event.preventDefault();
+  hidePasswordResetMessages();
+  const email = resetEmailEl.value.trim();
+  if (!email.includes("@")) {
+    renderPasswordResetError("Enter a valid email.");
+    return;
+  }
+
+  const submitButton = passwordResetRequestForm.querySelector("button");
+  submitButton.disabled = true;
+  try {
+    const result = await postJson("/api/auth/password-reset/request", { email });
+    passwordResetStatusEl.hidden = false;
+    passwordResetStatusEl.textContent = result.message;
+    if (result.devResetCode) {
+      resetCodePanelEl.hidden = false;
+      resetDevCodeEl.textContent = result.devResetCode;
+      resetCodeEl.value = result.devResetCode;
+      passwordResetConfirmForm.hidden = false;
+      resetCodeEl.focus();
+    } else {
+      passwordResetStatusEl.textContent = `${result.message} No prototype reset code was returned for this address. Create an account first or check the exact email.`;
+      resetCodePanelEl.hidden = true;
+      resetDevCodeEl.textContent = "";
+      passwordResetConfirmForm.hidden = true;
+      resetEmailEl.focus();
+    }
+  } catch (error) {
+    renderPasswordResetError(error.message || "Password reset could not be requested.");
   } finally {
     submitButton.disabled = false;
   }
+}
+
+async function confirmPasswordReset(event) {
+  event.preventDefault();
+  hidePasswordResetMessages({ keepCode: true });
+  const email = resetEmailEl.value.trim();
+  const resetCode = resetCodeEl.value.trim();
+  const newPassword = resetNewPasswordEl.value;
+  if (!email.includes("@")) {
+    renderPasswordResetError("Enter a valid email.");
+    return;
+  }
+  if (!resetCode) {
+    renderPasswordResetError("Reset code is required.");
+    return;
+  }
+  if (newPassword.length < 12) {
+    renderPasswordResetError("Password must be at least 12 characters.");
+    return;
+  }
+
+  const submitButton = passwordResetConfirmForm.querySelector("button");
+  submitButton.disabled = true;
+  try {
+    await postJson("/api/auth/password-reset/confirm", { email, resetCode, newPassword });
+    passwordResetDialog.close();
+    authMode = "signin";
+    renderAuthMode();
+    document.querySelector("#email").value = email;
+    document.querySelector("#password").value = "";
+    authStatusEl.hidden = false;
+    authStatusEl.textContent = "Password reset. Sign in with your new password.";
+  } catch (error) {
+    renderPasswordResetError(error.message || "Password could not be reset.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function hidePasswordResetMessages({ keepCode = false } = {}) {
+  passwordResetErrorEl.hidden = true;
+  passwordResetErrorEl.textContent = "";
+  passwordResetStatusEl.hidden = true;
+  passwordResetStatusEl.textContent = "";
+  if (!keepCode) {
+    resetCodePanelEl.hidden = true;
+    resetDevCodeEl.textContent = "";
+  }
+}
+
+function renderPasswordResetError(message) {
+  passwordResetErrorEl.hidden = false;
+  passwordResetErrorEl.textContent = message;
 }
 
 async function saveOnboarding(event) {
@@ -289,9 +767,19 @@ async function saveOnboarding(event) {
   }
 }
 
-function validateConsentForm({ email, password, crisis, privacy, voice }) {
+function validateSignInForm({ email, password }) {
+  if (!email.includes("@")) return "Enter a valid email.";
+  if (!password) return "Password is required.";
+  return "";
+}
+
+function validateSignupForm({ email, password, crisis, privacy, voice }) {
   if (!email.includes("@")) return "Enter a valid email.";
   if (password.length < 12) return "Password must be at least 12 characters.";
+  return validateConsentChoices({ crisis, privacy, voice });
+}
+
+function validateConsentChoices({ crisis, privacy, voice }) {
   if (!crisis) return "Crisis limits consent is required.";
   if (!privacy) return "Privacy choices consent is required.";
   if (!voice) return "Voice audio consent is required.";
@@ -317,7 +805,8 @@ async function getJson(path) {
 async function requestJson(method, path, body) {
   const options = {
     method,
-    headers: {}
+    headers: {},
+    cache: "no-store"
   };
 
   if (csrfToken && ["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
@@ -348,16 +837,16 @@ async function ensureCsrfToken() {
   }
 }
 
-function hideConsentMessages() {
-  consentErrorEl.hidden = true;
-  consentErrorEl.textContent = "";
-  consentStatusEl.hidden = true;
-  consentStatusEl.textContent = "";
+function hideAuthMessages() {
+  authErrorEl.hidden = true;
+  authErrorEl.textContent = "";
+  authStatusEl.hidden = true;
+  authStatusEl.textContent = "";
 }
 
-function renderConsentError(message) {
-  consentErrorEl.hidden = false;
-  consentErrorEl.textContent = message;
+function renderAuthError(message) {
+  authErrorEl.hidden = false;
+  authErrorEl.textContent = message;
 }
 
 function validateOnboarding(profile) {
@@ -389,33 +878,31 @@ function renderOnboardingError(message) {
 }
 
 function renderRoutineSetup(setup) {
-  onboardingStatusEl.hidden = false;
-  onboardingStatusEl.textContent = "Your three anchors are ready.";
+  showAuthenticatedShell();
+  authSection.hidden = true;
+  onboardingSection.hidden = true;
+  onboardingStatusEl.hidden = true;
+  onboardingStatusEl.textContent = "";
   routineResultEl.hidden = false;
   anchorListEl.innerHTML = "";
-  morningAnchorId = setup.today.find(anchor => anchor.type === "morning")?.id || "";
+  todayAnchors = setup.today || [];
+  morningAnchorId = todayAnchors.find(anchor => anchor.type === "morning")?.id || "";
+  middayAnchorId = todayAnchors.find(anchor => anchor.type === "midday")?.id || "";
 
-  setup.today.forEach(anchor => {
+  todayAnchors.forEach(anchor => {
     const item = document.createElement("li");
     item.textContent = `${capitalize(anchor.type)} - ${anchor.targetTime}`;
     anchorListEl.append(item);
   });
 
   nextBestStepEl.textContent = setup.dailyPlan.nextBestStep;
-  checkInSection.hidden = false;
-  resetSection.hidden = false;
-  diarySection.hidden = false;
-  skillsSection.hidden = false;
-  coachSection.hidden = false;
-  chainSection.hidden = false;
-  voiceSection.hidden = false;
-  insightsSection.hidden = false;
-  packetSection.hidden = false;
-  privacySection.hidden = false;
-  offlineSection.hidden = false;
+  renderAnchorProgress();
+  renderFocusPlan(setup.focusPlan || null);
+  showGuidedView(viewFromHash() || currentView || "today", { replaceHash: true });
   diaryDateEl.value = new Date().toISOString().slice(0, 10);
   checkInResultEl.hidden = true;
   safetyModeEl.hidden = true;
+  middayResultEl.hidden = true;
   resetResultEl.hidden = true;
   diaryResultEl.hidden = true;
   skillDetailEl.hidden = true;
@@ -428,6 +915,51 @@ function renderRoutineSetup(setup) {
   insightsResultEl.hidden = true;
   packetDownloadEl.hidden = true;
   loadSkills();
+}
+
+function renderAnchorProgress() {
+  anchorProgressEl.innerHTML = "";
+  todayAnchors.forEach(anchor => {
+    const item = document.createElement("li");
+    const label = document.createElement("strong");
+    const time = document.createElement("span");
+    const state = document.createElement("span");
+    label.textContent = capitalize(anchor.type);
+    time.textContent = anchor.targetTime;
+    state.className = "anchor-state";
+    state.textContent = anchor.status === "complete"
+      ? "Complete"
+      : nextAnchorType() === anchor.type ? "Current" : "Scheduled";
+    item.append(label, time, state);
+    anchorProgressEl.append(item);
+  });
+}
+
+function nextAnchorType() {
+  return todayAnchors.find(anchor => anchor.status !== "complete")?.type || "evening";
+}
+
+function updateAnchorState(updatedAnchor) {
+  todayAnchors = todayAnchors.map(anchor => anchor.id === updatedAnchor.id ? { ...anchor, ...updatedAnchor } : anchor);
+  renderAnchorProgress();
+}
+
+function renderFocusPlan(focusPlan) {
+  if (!focusPlan) {
+    focusPlanSummaryEl.hidden = true;
+    focusSummaryFocusEl.textContent = "";
+    focusSummaryMomentEl.textContent = "";
+    focusSummarySkillEl.textContent = "";
+    return;
+  }
+
+  focusPlanSummaryEl.hidden = false;
+  focusSummaryFocusEl.textContent = focusPlan.focusText;
+  focusSummaryMomentEl.textContent = focusPlan.anticipatedHardMoment;
+  focusSummarySkillEl.textContent = focusPlan.plannedSkill;
+  focusTextEl.value = focusPlan.focusText;
+  anticipatedHardMomentEl.value = focusPlan.anticipatedHardMoment;
+  plannedSkillEl.value = focusPlan.plannedSkill;
 }
 
 async function saveQuickCheckIn(event) {
@@ -466,12 +998,120 @@ async function saveQuickCheckIn(event) {
       completedAt: new Date().toISOString(),
       checkInId: result.checkIn.id
     });
+    updateAnchorState(completion.anchor);
     renderCheckInComplete(result, completion);
   } catch (error) {
     renderCheckInError(error.message || "Check-in could not be saved.");
   } finally {
     submitButton.disabled = false;
   }
+}
+
+async function saveFocusPlan(event) {
+  event.preventDefault();
+  hideFocusPlanMessages();
+  const formData = new FormData(focusPlanForm);
+  const focusPlan = {
+    focusText: String(formData.get("focusText") || "").trim(),
+    anticipatedHardMoment: String(formData.get("anticipatedHardMoment") || "").trim(),
+    plannedSkill: String(formData.get("plannedSkill") || "").trim()
+  };
+
+  const localError = validateFocusPlan(focusPlan);
+  if (localError) {
+    renderInlineError(focusPlanErrorEl, localError);
+    return;
+  }
+
+  const submitButton = focusPlanForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    const saved = await postJson("/api/today/focus-plan", focusPlan);
+    renderFocusPlan(saved);
+    focusPlanStatusEl.hidden = false;
+    focusPlanStatusEl.textContent = "Focus plan saved.";
+    showGuidedView("today");
+  } catch (error) {
+    renderInlineError(focusPlanErrorEl, error.message || "Focus plan could not be saved.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function validateFocusPlan(focusPlan) {
+  if (!focusPlan.focusText) return "One focus is required.";
+  if (!focusPlan.anticipatedHardMoment) return "Likely hard moment is required.";
+  if (!focusPlan.plannedSkill) return "Skill or support step is required.";
+  return "";
+}
+
+function hideFocusPlanMessages() {
+  focusPlanErrorEl.hidden = true;
+  focusPlanErrorEl.textContent = "";
+  focusPlanStatusEl.hidden = true;
+  focusPlanStatusEl.textContent = "";
+}
+
+async function saveMiddayCheckIn(event) {
+  event.preventDefault();
+  hideMiddayMessages();
+  const formData = new FormData(middayForm);
+  const checkIn = {
+    createdAt: new Date().toISOString(),
+    anchorContext: "midday",
+    primaryEmotionScore: scoreValue(formData.get("primaryEmotionScore")),
+    primaryUrgeScore: scoreValue(formData.get("primaryUrgeScore")),
+    energyState: String(formData.get("energyState") || ""),
+    suggestedNextActionStatus: "accepted",
+    note: String(formData.get("note") || "").trim(),
+    locationContext: ""
+  };
+
+  const localError = validateMiddayCheckIn(checkIn);
+  if (localError) {
+    renderInlineError(middayErrorEl, localError);
+    return;
+  }
+
+  const submitButton = middayForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  try {
+    const result = await postJson("/api/check-ins", checkIn);
+    if (result.safetyMode) {
+      renderInlineError(middayErrorEl, result.safetyMode.message);
+      return;
+    }
+
+    const completion = await postJson(`/api/today/anchors/${middayAnchorId}/complete`, {
+      completedAt: new Date().toISOString(),
+      checkInId: result.checkIn.id
+    });
+    updateAnchorState(completion.anchor);
+    middayStatusEl.hidden = false;
+    middayStatusEl.textContent = "Midday anchor complete.";
+    middayResultEl.hidden = false;
+    middayNextStepEl.textContent = completion.nextBestStep;
+  } catch (error) {
+    renderInlineError(middayErrorEl, error.message || "Midday anchor could not be completed.");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function validateMiddayCheckIn(checkIn) {
+  if (!Number.isInteger(checkIn.primaryEmotionScore)) return "Midday mood is required.";
+  if (!Number.isInteger(checkIn.primaryUrgeScore)) return "Midday urge is required.";
+  if (!checkIn.energyState) return "Midday energy is required.";
+  if (!middayAnchorId) return "Midday anchor is not ready.";
+  return "";
+}
+
+function hideMiddayMessages() {
+  middayErrorEl.hidden = true;
+  middayErrorEl.textContent = "";
+  middayStatusEl.hidden = true;
+  middayStatusEl.textContent = "";
+  middayResultEl.hidden = true;
 }
 
 function scoreValue(value) {
@@ -981,20 +1621,36 @@ async function completeChainAnalysis(event) {
 
 async function startVoiceSession(event) {
   event.preventDefault();
+  closeActiveVoiceConnection();
   voiceErrorEl.hidden = true;
   voiceStatusEl.hidden = true;
   voicePreviewEl.hidden = true;
   voiceEndStatusEl.hidden = true;
+  window.anchorVoiceEvents = [];
+  activeVoiceSessionId = "";
+  activeVoiceUsedRealtime = false;
+  let connection = null;
+  const useLiveRealtime = shouldUseRealWebRtc();
 
   try {
     const formData = new FormData(voiceForm);
+    connection = useLiveRealtime
+      ? await createRealtimeWebRtcOffer()
+      : null;
     const result = await postJson("/api/voice/client-secret", {
       mode: "skill",
       doNotSave: formData.get("doNotSave") === "on",
+      useLiveRealtime,
       contextRefs: {},
-      sdpOffer: await createLocalSdpOffer()
+      sdpOffer: connection?.offerSdp ?? await createLocalSdpOffer()
     });
+    if (connection) {
+      await connectRealtimeWebRtc(connection, result.sdpAnswer);
+      activeVoiceConnection = connection;
+      connection = null;
+    }
     activeVoiceSessionId = result.voiceSessionId;
+    activeVoiceUsedRealtime = useLiveRealtime;
     voiceStatusEl.hidden = false;
     voiceStatusEl.textContent = result.sdpAnswer
       ? "Voice session ready. Client secret ready."
@@ -1005,29 +1661,177 @@ async function startVoiceSession(event) {
       : "Transcript preview disabled.";
     voiceEndButton.hidden = false;
   } catch (error) {
+    closeVoiceConnection(connection);
+    activeVoiceSessionId = "";
+    activeVoiceUsedRealtime = false;
+    voiceEndButton.hidden = true;
+    voiceStatusEl.hidden = true;
+    voicePreviewEl.hidden = true;
     renderInlineError(voiceErrorEl, error.message || "Voice session could not start.");
   }
+}
+
+function shouldUseRealWebRtc() {
+  const available = publicConfig?.voice?.liveRealtimeAvailable === true;
+  return available && (
+    voiceUseLiveAgentEl.checked ||
+    localStorage.getItem("anchor_live_webrtc") === "1" ||
+    new URLSearchParams(location.search).get("liveWebrtc") === "1"
+  );
 }
 
 async function createLocalSdpOffer() {
   return "v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=Anchor Browser Offer\r\n";
 }
 
+async function createRealtimeWebRtcOffer() {
+  if (!("RTCPeerConnection" in window) || !navigator.mediaDevices?.getUserMedia) {
+    throw new Error("Realtime voice needs browser WebRTC and microphone support.");
+  }
+
+  const peerConnection = new RTCPeerConnection();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  stream.getAudioTracks().forEach(track => peerConnection.addTrack(track, stream));
+  peerConnection.ontrack = event => {
+    voiceRemoteAudioEl.srcObject = event.streams[0];
+    voiceRemoteAudioEl.hidden = false;
+  };
+
+  const dataChannel = peerConnection.createDataChannel("oai-events");
+  dataChannel.addEventListener("message", event => {
+    try {
+      window.anchorVoiceEvents.push(JSON.parse(event.data));
+    } catch {
+      window.anchorVoiceEvents.push({ type: "unparsed", raw: String(event.data) });
+    }
+  });
+
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
+  await waitForIceGathering(peerConnection);
+
+  return {
+    peerConnection,
+    stream,
+    dataChannel,
+    offerSdp: peerConnection.localDescription?.sdp || offer.sdp
+  };
+}
+
+async function connectRealtimeWebRtc(connection, sdpAnswer) {
+  await connection.peerConnection.setRemoteDescription({
+    type: "answer",
+    sdp: sdpAnswer
+  });
+  await waitForDataChannel(connection.dataChannel);
+  connection.dataChannel.send(JSON.stringify({
+    type: "conversation.item.create",
+    item: {
+      type: "message",
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: "Generated Anchor live browser test. Please give one short grounding instruction."
+        }
+      ]
+    }
+  }));
+  connection.dataChannel.send(JSON.stringify({
+    type: "response.create",
+    response: {
+      modalities: ["text", "audio"],
+      instructions: "Reply with one short grounding instruction for the generated Anchor live test."
+    }
+  }));
+}
+
+function waitForIceGathering(peerConnection) {
+  if (peerConnection.iceGatheringState === "complete") return Promise.resolve();
+  return new Promise(resolve => {
+    const timeout = setTimeout(done, 2000);
+    function done() {
+      clearTimeout(timeout);
+      peerConnection.removeEventListener("icegatheringstatechange", onChange);
+      resolve();
+    }
+    function onChange() {
+      if (peerConnection.iceGatheringState === "complete") done();
+    }
+    peerConnection.addEventListener("icegatheringstatechange", onChange);
+  });
+}
+
+function waitForDataChannel(dataChannel) {
+  if (dataChannel.readyState === "open") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Realtime data channel did not open."));
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timeout);
+      dataChannel.removeEventListener("open", onOpen);
+      dataChannel.removeEventListener("error", onError);
+    }
+    function onOpen() {
+      cleanup();
+      resolve();
+    }
+    function onError() {
+      cleanup();
+      reject(new Error("Realtime data channel failed."));
+    }
+    dataChannel.addEventListener("open", onOpen);
+    dataChannel.addEventListener("error", onError);
+  });
+}
+
 async function endVoiceSession() {
+  if (!activeVoiceSessionId) {
+    closeActiveVoiceConnection();
+    voiceEndButton.hidden = true;
+    return;
+  }
   voiceEndStatusEl.hidden = true;
   voiceEndStatusEl.textContent = "Voice session ended.";
   voiceEndStatusEl.hidden = false;
   try {
     await postJson(`/api/voice/sessions/${activeVoiceSessionId}/end`, {
       endedAt: new Date().toISOString(),
-      savedSummary: "Practiced one paced breathing cycle.",
-      transcriptOptIn: false
+      savedSummary: activeVoiceUsedRealtime
+        ? "Generated live voice test completed with Realtime events."
+        : "Practiced one paced breathing cycle.",
+      transcriptOptIn: activeVoiceUsedRealtime
     });
     voiceEndButton.hidden = true;
   } catch (error) {
     voiceEndStatusEl.hidden = true;
     renderInlineError(voiceErrorEl, error.message || "Voice session could not end.");
+  } finally {
+    closeActiveVoiceConnection();
   }
+}
+
+function closeVoiceConnection(connection) {
+  if (!connection) return;
+  connection.stream?.getTracks().forEach(track => track.stop());
+  try {
+    connection.dataChannel?.close();
+  } catch {
+    // Already closed.
+  }
+  try {
+    connection.peerConnection?.close();
+  } catch {
+    // Already closed.
+  }
+}
+
+function closeActiveVoiceConnection() {
+  closeVoiceConnection(activeVoiceConnection);
+  activeVoiceConnection = null;
+  activeVoiceUsedRealtime = false;
 }
 
 async function loadInsightsAndReview() {

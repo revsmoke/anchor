@@ -26,12 +26,14 @@ function createHardeningMemoryDb() {
   const packets = new Map();
   const exports = new Map();
   const deletions = new Map();
+  const passwordResetTokens = new Set();
   const auditEvents = [];
   const offlineMutations = new Set();
   const deletedUsers = new Set();
 
   return {
     deletedUsers,
+    passwordResetTokens,
     auditEvents,
 
     async checkHealth() {
@@ -43,10 +45,12 @@ function createHardeningMemoryDb() {
         "users",
         "sessions",
         "consent_records",
+        "daily_focus_plans",
         "voice_sessions",
         "session_packets",
         "privacy_exports",
         "delete_requests",
+        "password_reset_tokens",
         "export_artifacts",
         "audit_events",
         "offline_mutations"
@@ -225,6 +229,7 @@ function createHardeningMemoryDb() {
       const request = deletions.get(deleteRequestId);
       if (!request || request.userId !== userId) return null;
       deletedUsers.add(userId);
+      passwordResetTokens.delete(userId);
       for (const [artifactId, artifact] of exports.entries()) {
         if (artifact.userId === userId) exports.delete(artifactId);
       }
@@ -446,6 +451,7 @@ describe("Production hardening: exports, deletion, audit, readiness", () => {
   test("executes privacy deletion and records audit event", async () => {
     const db = createHardeningMemoryDb();
     const { app, cookie } = await signedInConsentedApp({ db });
+    db.passwordResetTokens.add("user_1");
 
     const requestResponse = await app.fetch(jsonRequest("/api/privacy/delete-request", {
       scope: "all",
@@ -461,6 +467,7 @@ describe("Production hardening: exports, deletion, audit, readiness", () => {
     expect(executeResponse.status).toBe(200);
     expect(executed.data.status).toBe("completed");
     expect(db.deletedUsers.has("user_1")).toBe(true);
+    expect(db.passwordResetTokens.has("user_1")).toBe(false);
     expect(db.auditEvents.some(event => event.eventType === "privacy_delete_completed")).toBe(true);
   });
 

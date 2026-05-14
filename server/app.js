@@ -13,7 +13,10 @@ import {
   validateCoachMessagePayload,
   validateDeleteExecutionPayload,
   validateDeleteRequestPayload,
+  validateFocusPlanPayload,
   validateOfflineQueuePayload,
+  validatePasswordResetConfirmPayload,
+  validatePasswordResetRequestPayload,
   validateSkillSessionPayload,
   validatePrivacyExportPayload,
   validateQuickCheckInPayload,
@@ -33,6 +36,7 @@ import { createRequestId, jsonError, jsonOk } from "./http/response.js";
 import { createArtifactStore, redactPacketPayload } from "./services/export-service.js";
 import { createRealtimeClient } from "./services/realtime.js";
 import { redactAuditMetadata } from "./services/audit.js";
+import { resolveUserLocalDate, resolveUserTimezone } from "./dates.js";
 
 const DEFAULT_PUBLIC_DIR = new URL("../public", import.meta.url).pathname;
 
@@ -41,7 +45,8 @@ export function createApp({
   publicDir = DEFAULT_PUBLIC_DIR,
   config = getServerConfig(),
   realtimeClient = createRealtimeClient(config),
-  artifactStore = createArtifactStore(config)
+  artifactStore = createArtifactStore(config),
+  now = () => new Date()
 } = {}) {
   if (!db) {
     throw new Error("createApp requires a db adapter.");
@@ -58,7 +63,7 @@ export function createApp({
       }
 
       if (request.method === "GET" && url.pathname === "/api/config/public") {
-        return jsonOk(getPublicConfig());
+        return jsonOk(getPublicConfig(config));
       }
 
       if (request.method === "GET" && url.pathname === "/api/csrf") {
@@ -81,8 +86,20 @@ export function createApp({
         return handleLogout(db, request, config);
       }
 
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/request") {
+        return handlePasswordResetRequest(db, request, config);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/auth/password-reset/confirm") {
+        return handlePasswordResetConfirm(db, request);
+      }
+
       if (request.method === "GET" && url.pathname === "/api/me") {
         return handleMe(db, request);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/app/bootstrap") {
+        return handleAppBootstrap(db, request, url, now);
       }
 
       if (request.method === "POST" && url.pathname === "/api/onboarding/consent") {
@@ -94,7 +111,7 @@ export function createApp({
       }
 
       if (request.method === "POST" && url.pathname === "/api/onboarding/routines") {
-        return handleRoutines(db, request);
+        return handleRoutines(db, request, url, now);
       }
 
       if (request.method === "POST" && url.pathname === "/api/check-ins") {
@@ -102,7 +119,15 @@ export function createApp({
       }
 
       if (request.method === "POST" && url.pathname === "/api/today/reset") {
-        return handleDayReset(db, request);
+        return handleDayReset(db, request, url, now);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/today/focus-plan") {
+        return handleGetFocusPlan(db, request, url, now);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/today/focus-plan") {
+        return handleSaveFocusPlan(db, request, url, now);
       }
 
       const diaryMatch = url.pathname.match(/^\/api\/diary\/(\d{4}-\d{2}-\d{2})$/);
@@ -196,7 +221,7 @@ export function createApp({
 
       const anchorCompleteMatch = url.pathname.match(/^\/api\/today\/anchors\/([^/]+)\/complete$/);
       if (request.method === "POST" && anchorCompleteMatch) {
-        return handleAnchorComplete(db, request, anchorCompleteMatch[1]);
+        return handleAnchorComplete(db, request, anchorCompleteMatch[1], url, now);
       }
 
       if (request.method === "GET" && url.pathname === "/favicon.ico") {
@@ -354,6 +379,88 @@ async function handleLogout(db, request, config) {
   );
 }
 
+async function handlePasswordResetRequest(db, request, config) {
+  const payload = await readJson(request);
+  const validation = validatePasswordResetRequestPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_password_reset_request", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const message = "If an account exists for that email, a password reset code is available.";
+  const user = await db.getUserByEmail(validation.value.email);
+  if (!user) {
+    return jsonOk({ message });
+  }
+
+  const resetCode = createPasswordResetCode();
+  await db.createPasswordResetToken(user.id, {
+    tokenHash: await hashPassword(resetCode),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    requestMetadata: {
+      source: "web",
+      appEnv: config.appEnv
+    }
+  });
+
+  return jsonOk({
+    message,
+    ...(canReturnDevResetCode(config) ? { devResetCode: resetCode } : {})
+  });
+}
+
+async function handlePasswordResetConfirm(db, request) {
+  const payload = await readJson(request);
+  const validation = validatePasswordResetConfirmPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_password_reset_confirm", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const user = await db.getUserByEmail(validation.value.email);
+  if (!user) {
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const tokens = await db.getActivePasswordResetTokens(user.id);
+  let matchingToken = null;
+  for (const token of tokens) {
+    if (await verifyPassword(token.tokenHash, validation.value.resetCode)) {
+      matchingToken = token;
+      break;
+    }
+  }
+
+  if (!matchingToken) {
+    if (typeof db.recordPasswordResetFailure === "function") {
+      await db.recordPasswordResetFailure(user.id);
+    }
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const consumed = await db.consumePasswordResetToken(user.id, matchingToken.id);
+  if (!consumed) {
+    return jsonError("invalid_password_reset_code", "Reset code is invalid or expired.", {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  await db.updateUserPassword(user.id, await hashPassword(validation.value.newPassword));
+  await db.deleteSessionsForUser(user.id);
+  return jsonOk({ passwordReset: true });
+}
+
 async function handleMe(db, request) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
@@ -362,6 +469,31 @@ async function handleMe(db, request) {
     user: publicUser(user),
     profile: null,
     consents: await db.getConsentsForUser(user.id)
+  });
+}
+
+async function handleAppBootstrap(db, request, url, now) {
+  const headers = { "cache-control": "no-store" };
+  if (!readSessionToken(request)) {
+    return jsonOk({
+      authenticated: false,
+      nextStep: "auth"
+    }, {
+      headers
+    });
+  }
+
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  const dateOptions = await dailyDateOptions(db, user, url, now);
+  const bootstrap = await db.getAppBootstrap(user.id, dateOptions);
+
+  return jsonOk({
+    ...bootstrap,
+    authenticated: true,
+    user: bootstrap.user ?? publicUser(user)
+  }, {
+    headers
   });
 }
 
@@ -403,7 +535,7 @@ async function handleProfile(db, request) {
   });
 }
 
-async function handleRoutines(db, request) {
+async function handleRoutines(db, request, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
   if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
@@ -417,7 +549,7 @@ async function handleRoutines(db, request) {
     });
   }
 
-  return jsonOk(await db.saveRoutineSetup(user.id, validation.value));
+  return jsonOk(await db.saveRoutineSetup(user.id, validation.value, await dailyDateOptions(db, user, url, now)));
 }
 
 async function handleCheckIn(db, request) {
@@ -458,7 +590,7 @@ async function handleCheckIn(db, request) {
   return jsonOk(data, { status: 201 });
 }
 
-async function handleAnchorComplete(db, request, anchorId) {
+async function handleAnchorComplete(db, request, anchorId, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
 
@@ -471,7 +603,12 @@ async function handleAnchorComplete(db, request, anchorId) {
     });
   }
 
-  const result = await db.completeRoutineInstance(user.id, anchorId, validation.value);
+  const result = await db.completeRoutineInstance(
+    user.id,
+    anchorId,
+    validation.value,
+    await dailyDateOptions(db, user, url, now)
+  );
   if (!result) {
     return jsonError("anchor_not_found", "Anchor could not be found.", {
       status: 404,
@@ -482,7 +619,7 @@ async function handleAnchorComplete(db, request, anchorId) {
   return jsonOk(result);
 }
 
-async function handleDayReset(db, request) {
+async function handleDayReset(db, request, url, now) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
 
@@ -495,7 +632,40 @@ async function handleDayReset(db, request) {
     });
   }
 
-  return jsonOk(await db.resetTodayPlan(user.id, validation.value));
+  return jsonOk(await db.resetTodayPlan(user.id, validation.value, await dailyDateOptions(db, user, url, now)));
+}
+
+async function handleGetFocusPlan(db, request, url, now) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  return jsonOk({
+    focusPlan: await db.getTodayFocusPlan(user.id, await dailyDateOptions(db, user, url, now))
+  });
+}
+
+async function handleSaveFocusPlan(db, request, url, now) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const payload = await readJson(request);
+  const validation = validateFocusPlanPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_focus_plan", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  return jsonOk(await db.saveTodayFocusPlan(
+    user.id,
+    validation.value,
+    await dailyDateOptions(db, user, url, now)
+  ), {
+    status: 201
+  });
 }
 
 async function handleDiaryGet(db, request, entryDate) {
@@ -728,14 +898,14 @@ async function handleVoiceClientSecret(db, request, config, realtimeClient) {
     model: config.realtimeModel,
     instructions: "You are Anchor's DBT practice voice coach. Keep responses short and action-oriented. Do not provide emergency care.",
     audio: {
-      input: { format: "pcm16" },
-      output: { format: "pcm16" }
+      output: { voice: "marin" }
     }
   };
   const call = validation.value.sdpOffer
     ? await realtimeClient.createCall({
       sdpOffer: validation.value.sdpOffer,
-      session
+      session,
+      forceNetwork: validation.value.useLiveRealtime
     })
     : {
       sdpAnswer: "v=0\r\no=- 2 2 IN IP4 127.0.0.1\r\ns=Anchor Local Answer\r\n",
@@ -794,7 +964,9 @@ async function handleVoiceEnd(db, request, realtimeClient, voiceSessionId) {
   }
 
   if (voiceSession.openAiCallId) {
-    await realtimeClient.hangup(voiceSession.openAiCallId);
+    await realtimeClient.hangup(voiceSession.openAiCallId, {
+      forceNetwork: voiceSession.openAiCallId !== "local_realtime_call"
+    });
   }
   await saveAuditIfSupported(db, user.id, "voice_ended", {
     voiceSessionId,
@@ -1092,6 +1264,25 @@ async function requireUser(db, request) {
   return db.getSessionUser(token);
 }
 
+async function dailyDateOptions(db, user, url, now) {
+  const profileTimezone = typeof db.getUserDailyTimezone === "function"
+    ? await db.getUserDailyTimezone(user.id)
+    : "";
+  const timezone = resolveUserTimezone({
+    profileTimezone,
+    fallbackTimezone: url.searchParams.get("timezone") || user.timezone || "UTC"
+  });
+
+  return {
+    localDate: resolveUserLocalDate({
+      timezone,
+      dateParam: url.searchParams.get("date") || "",
+      now: now()
+    }),
+    timezone
+  };
+}
+
 function validateCsrfIfNeeded(config, request, url) {
   if (!config.csrfProtection || !["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
     return null;
@@ -1185,7 +1376,7 @@ function classifyRisk(checkIn) {
 
 function actionLabelFor(checkIn) {
   if (checkIn.anchorContext === "morning") {
-    return "Choose one focus and cope ahead.";
+    return "Pick one focus and make a cope-ahead plan.";
   }
 
   if (checkIn.energyState === "low") {
@@ -1359,6 +1550,15 @@ function publicUser(user) {
     locale: user.locale,
     status: user.status
   };
+}
+
+function createPasswordResetCode() {
+  const value = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  return String(value).padStart(6, "0");
+}
+
+function canReturnDevResetCode(config) {
+  return config.appEnv !== "production";
 }
 
 async function serveStatic(publicDir, pathname) {

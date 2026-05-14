@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 async function completeRoutineSetup(page, prefix) {
   await page.goto("/");
+  await page.locator("#auth-mode-signup").click();
   await page.getByLabel("Email").fill(`${prefix}-${Date.now()}@example.com`);
   await page.getByLabel("Password").fill("passphrase-123");
   await page.getByLabel("I understand Anchor is not emergency care").check();
   await page.getByLabel("I understand privacy choices and data retention settings").check();
   await page.getByLabel("I understand voice audio and transcript choices").check();
-  await page.getByRole("button", { name: "Create account and save consent" }).click();
+  await page.locator("#auth-submit").click();
   await expect(page.getByText("Consent saved. Next: onboarding setup.")).toBeVisible();
 
   await page.getByLabel("Wake time").fill("07:00");
@@ -21,6 +22,7 @@ async function completeRoutineSetup(page, prefix) {
 
 test("Pass 8 creates and completes a chain analysis", async ({ page }) => {
   await completeRoutineSetup(page, "pass8");
+  await page.getByRole("button", { name: "Chain" }).click();
 
   await expect(page.getByRole("heading", { name: "Chain Analysis" })).toBeVisible();
   await page.getByLabel("Prompting event").fill("Avoided the afternoon anchor.");
@@ -39,6 +41,7 @@ test("Pass 8 creates and completes a chain analysis", async ({ page }) => {
 
 test("Pass 9 starts and ends a voice coach session with transcript preview", async ({ page }) => {
   await completeRoutineSetup(page, "pass9");
+  await page.getByRole("button", { name: "Voice", exact: true }).click();
 
   await expect(page.getByRole("heading", { name: "Live Voice Coach" })).toBeVisible();
   await page.getByLabel("Do not save this voice session").check();
@@ -53,6 +56,7 @@ test("Pass 9 starts and ends a voice coach session with transcript preview", asy
 
 test("Pass 10 renders insights and weekly review", async ({ page }) => {
   await completeRoutineSetup(page, "pass10");
+  await page.getByRole("button", { name: "Insights" }).click();
 
   await expect(page.getByRole("heading", { name: "Insights and Weekly Review" })).toBeVisible();
   await page.getByRole("button", { name: "Load Insights" }).click();
@@ -64,6 +68,7 @@ test("Pass 10 renders insights and weekly review", async ({ page }) => {
 
 test("Pass 11 generates a redacted session prep packet", async ({ page }) => {
   await completeRoutineSetup(page, "pass11");
+  await page.getByRole("button", { name: "Exports" }).click();
 
   await expect(page.getByRole("heading", { name: "Session Prep Export" })).toBeVisible();
   await page.getByLabel("Include diary").check();
@@ -78,6 +83,7 @@ test("Pass 11 generates a redacted session prep packet", async ({ page }) => {
 
 test("Pass 12 saves privacy controls and queues export/delete", async ({ page }) => {
   await completeRoutineSetup(page, "pass12");
+  await page.getByRole("button", { name: "Privacy" }).click();
 
   await expect(page.getByRole("heading", { name: "Privacy and Data Controls" })).toBeVisible();
   await page.getByLabel("Transcript retention").selectOption("0");
@@ -95,6 +101,7 @@ test("Pass 12 saves privacy controls and queues export/delete", async ({ page })
 
 test("Pass 13 saves notification settings and syncs offline capture", async ({ page }) => {
   await completeRoutineSetup(page, "pass13");
+  await page.getByRole("button", { name: "Offline" }).click();
 
   await expect(page.getByRole("heading", { name: "Notifications and Offline Capture" })).toBeVisible();
   await page.getByLabel("Notification opt-in").check();

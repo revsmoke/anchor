@@ -7,30 +7,31 @@ implementation
 Implemented the private-beta production-hardening track for Anchor. The app now has production env validation, secure cookie/CSRF support, request ids, server-mediated Realtime voice setup boundary, authenticated JSON export artifacts, executable privacy deletion, app-shell PWA registration, offline retry storage, audit events, and a private-beta readiness check.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Replaced completed Pass 8-13 plan with active production-hardening checklist. |
-| `/Users/twoedge/Dev/dbt/tests/api/production-hardening.test.js` | API tests for config, cookies, CSRF, voice, exports, deletion, audit, and readiness. |
-| `/Users/twoedge/Dev/dbt/tests/browser/production-hardening.spec.js` | Browser tests for hardening voice, exports, deletion, PWA, offline retry, and console health. |
-| `/Users/twoedge/Dev/dbt/server/config.js` | Added production env validation and hardening config defaults. |
-| `/Users/twoedge/Dev/dbt/server/http/cookies.js` | Added secure cookie options and CSRF cookie helpers. |
-| `/Users/twoedge/Dev/dbt/server/http/response.js` | Added request-id response headers. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added CSRF route/enforcement, voice Realtime boundary, export downloads, deletion execution, and audit calls. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added hardening persistence methods for required tables, export artifacts, deletion execution, audit events, and voice call id. |
-| `/Users/twoedge/Dev/dbt/server/readiness.js` | Added private-beta readiness checks. |
-| `/Users/twoedge/Dev/dbt/server/services/realtime.js` | Added server-mediated Realtime call and hangup service. |
-| `/Users/twoedge/Dev/dbt/server/services/export-service.js` | Added JSON artifact writing/reading and redaction helper. |
-| `/Users/twoedge/Dev/dbt/server/services/audit.js` | Added audit metadata redaction. |
-| `/Users/twoedge/Dev/dbt/db/migrations/015_production_hardening.sql` | Added hardening schema changes, export artifacts, and audit events. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added manifest link and delete execution control. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added CSRF usage, service worker registration, voice SDP setup, export link handling, deletion execution, and offline retry storage. |
-| `/Users/twoedge/Dev/dbt/public/manifest.webmanifest` | Added PWA manifest. |
-| `/Users/twoedge/Dev/dbt/public/service-worker.js` | Added app-shell caching without API response caching. |
-| `/Users/twoedge/Dev/dbt/scripts/private-beta-check.js` | Added readiness-check CLI. |
-| `/Users/twoedge/Dev/dbt/package.json` | Added `check:private-beta` script. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json` | Added completed hardening dashboard artifact. |
-| `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html` | Embedded the production-hardening dashboard state. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md` | Added production-hardening capability ledger entry. |
+| `PLAN.md` | Replaced completed Pass 8-13 plan with active production-hardening checklist. |
+| `tests/api/production-hardening.test.js` | API tests for config, cookies, CSRF, voice, exports, deletion, audit, and readiness. |
+| `tests/browser/production-hardening.spec.js` | Browser tests for hardening voice, exports, deletion, PWA, offline retry, and console health. |
+| `server/config.js` | Added production env validation and hardening config defaults. |
+| `server/http/cookies.js` | Added secure cookie options and CSRF cookie helpers. |
+| `server/http/response.js` | Added request-id response headers. |
+| `server/app.js` | Added CSRF route/enforcement, voice Realtime boundary, export downloads, deletion execution, and audit calls. |
+| `server/db.js` | Added hardening persistence methods for required tables, export artifacts, deletion execution, audit events, and voice call id. |
+| `server/readiness.js` | Added private-beta readiness checks. |
+| `server/services/realtime.js` | Added server-mediated Realtime call and hangup service. |
+| `server/services/export-service.js` | Added JSON artifact writing/reading and redaction helper. |
+| `server/services/audit.js` | Added audit metadata redaction. |
+| `db/migrations/015_production_hardening.sql` | Added hardening schema changes, export artifacts, and audit events. |
+| `public/index.html` | Added manifest link and delete execution control. |
+| `public/js/app.js` | Added CSRF usage, service worker registration, voice SDP setup, export link handling, deletion execution, and offline retry storage. |
+| `public/manifest.webmanifest` | Added PWA manifest. |
+| `public/service-worker.js` | Added app-shell caching without API response caching. |
+| `scripts/private-beta-check.js` | Added readiness-check CLI. |
+| `package.json` | Added `check:private-beta` script. |
+| `vertical-slice-dashboard-anchor-hardening.json` | Added completed hardening dashboard artifact. |
+| `vertical-slice-dashboard.html` | Embedded the production-hardening dashboard state. |
+| `CAPABILITY_LEDGER.md` | Added production-hardening capability ledger entry. |
 
 ### Key Decisions
 - Kept therapist sharing out of hardening scope. Session prep is export-only.
@@ -73,8 +74,8 @@ completed
 - Decide whether PDF exports and therapist share links are V1 or post-beta.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/SPEC.md`
-- `/Users/twoedge/Dev/dbt/CAPABILITY_LEDGER.md`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard.html`
-- `/Users/twoedge/Dev/dbt/vertical-slice-dashboard-anchor-hardening.json`
+- `PLAN.md`
+- `SPEC.md`
+- `CAPABILITY_LEDGER.md`
+- `vertical-slice-dashboard.html`
+- `vertical-slice-dashboard-anchor-hardening.json`

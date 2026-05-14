@@ -2,10 +2,12 @@ const REQUIRED_TABLES = [
   "users",
   "sessions",
   "consent_records",
+  "daily_focus_plans",
   "voice_sessions",
   "session_packets",
   "privacy_exports",
   "delete_requests",
+  "password_reset_tokens",
   "offline_mutations",
   "export_artifacts",
   "audit_events"
