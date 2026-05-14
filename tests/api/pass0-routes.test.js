@@ -35,6 +35,11 @@ describe("Pass 0 routes", () => {
     const app = createApp({
       db: {
         checkHealth: async () => true
+      },
+      config: {
+        appEnv: "test",
+        openaiApiKey: "",
+        realtimeModel: "gpt-realtime"
       }
     });
 
@@ -52,11 +57,50 @@ describe("Pass 0 routes", () => {
           suicideCrisisLifeline: "988"
         },
         voice: {
-          liveRealtimeAvailable: Boolean(process.env.OPENAI_API_KEY),
+          liveRealtimeAvailable: false,
           realtimeModel: "gpt-realtime"
         }
       }
     });
+  });
+
+  test("GET /api/config/public does not enable live voice for placeholder OpenAI config", async () => {
+    const app = createApp({
+      db: {
+        checkHealth: async () => true
+      },
+      config: {
+        appEnv: "test",
+        openaiApiKey: "replace-me",
+        realtimeModel: "replace-me"
+      }
+    });
+
+    const response = await app.fetch(request("/api/config/public"));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.data.voice.liveRealtimeAvailable).toBe(false);
+    expect(payload.data.voice.realtimeModel).toBe("replace-me");
+  });
+
+  test("POST /api/voice/client-secret is registered before the route fallback", async () => {
+    const app = createApp({
+      db: {
+        checkHealth: async () => true
+      }
+    });
+
+    const response = await app.fetch(new Request("http://localhost/api/voice/client-secret", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({})
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(payload.error.code).toBe("unauthorized");
+    expect(payload.error.code).not.toBe("not_found");
   });
 
   test("GET /api/today/snapshot returns the seeded PostgreSQL snapshot", async () => {

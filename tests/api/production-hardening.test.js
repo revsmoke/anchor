@@ -358,6 +358,42 @@ describe("Production hardening: security and config", () => {
 });
 
 describe("Production hardening: voice", () => {
+  test("returns JSON when realtime voice setup fails upstream", async () => {
+    const realtimeClient = {
+      async createCall() {
+        throw new Error("Realtime call could not be created (400): invalid_model");
+      },
+      async hangup() {
+        return true;
+      }
+    };
+    const { app, cookie } = await signedInConsentedApp({
+      realtimeClient,
+      config: {
+        appEnv: "test",
+        openaiApiKey: "sk-test",
+        realtimeModel: "gpt-realtime",
+        textModel: "gpt-4.1-mini",
+        traceRetentionDays: 30
+      }
+    });
+
+    const response = await app.fetch(jsonRequest("/api/voice/client-secret", {
+      mode: "skill",
+      doNotSave: true,
+      contextRefs: {},
+      useLiveRealtime: true,
+      sdpOffer: "v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=Anchor Offer\r\n"
+    }, "POST", { cookie }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(payload.ok).toBe(false);
+    expect(payload.error.code).toBe("voice_realtime_failed");
+    expect(payload.error.message).toBe("Realtime voice session could not be started.");
+    expect(JSON.stringify(payload)).not.toContain("invalid_model");
+  });
+
   test("creates server-mediated WebRTC session and hangs up by OpenAI call id", async () => {
     const calls = [];
     const hangups = [];

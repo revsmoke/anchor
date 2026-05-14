@@ -8,10 +8,14 @@ export function getPublicConfig(config = getServerConfig()) {
       suicideCrisisLifeline: "988"
     },
     voice: {
-      liveRealtimeAvailable: Boolean(config.openaiApiKey),
+      liveRealtimeAvailable: isLiveRealtimeConfigured(config),
       realtimeModel: config.realtimeModel
     }
   };
+}
+
+export function isLiveRealtimeConfigured(config) {
+  return hasUsableConfigValue(config.openaiApiKey) && hasUsableConfigValue(config.realtimeModel);
 }
 
 export function getServerConfig(env = process.env) {
@@ -45,4 +49,9 @@ export function getServerConfig(env = process.env) {
   }
 
   return config;
+}
+
+function hasUsableConfigValue(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return Boolean(normalized) && !["replace-me", "changeme", "change-me", "todo", "none", "null"].includes(normalized);
 }
