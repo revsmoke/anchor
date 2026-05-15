@@ -264,7 +264,11 @@ export function createDb(databaseUrl) {
     },
 
     async getToday(userId, options = {}) {
-      return buildTodayStateFromBootstrap(await this.getAppBootstrap(userId, options), options);
+      const activeSafetyEpisode = await this.getActiveSafetyEpisode(userId);
+      return buildTodayStateFromBootstrap(await this.getAppBootstrap(userId, options), {
+        ...options,
+        activeSafetyEpisode
+      });
     },
 
     async createPasswordResetToken(userId, reset) {
@@ -1664,7 +1668,8 @@ function userFromRow(row) {
   };
 }
 
-function buildTodayStateFromBootstrap(bootstrap, options = {}) {
+export function buildTodayStateFromBootstrap(bootstrap, options = {}) {
+  const activeEpisode = options.activeSafetyEpisode ?? null;
   return {
     date: options.localDate ?? bootstrap.dailyPlan?.date ?? null,
     timezone: options.timezone ?? null,
@@ -1674,7 +1679,10 @@ function buildTodayStateFromBootstrap(bootstrap, options = {}) {
     focusPlan: bootstrap.focusPlan ?? null,
     diaryStatus: { completionState: "not_started" },
     recommendedSkill: null,
-    safetyStatus: { riskTier: "normal", activeEpisode: null },
+    safetyStatus: {
+      riskTier: activeEpisode ? "acute" : "normal",
+      activeEpisode
+    },
     session: { authenticated: true }
   };
 }

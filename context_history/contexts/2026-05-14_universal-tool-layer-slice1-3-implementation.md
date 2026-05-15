@@ -7,25 +7,26 @@ implementation
 Implemented the first runnable vertical slices of the universal agent-accessible tool layer plan. The work added a capability matrix, canonical `/api/today`, Today UI use of that canonical endpoint, safety plan/event APIs, persisted safety episodes, acute safety lock enforcement, and a Safety Plan / Help Now UI that can save plans, append acute events, discover open acute episodes, and resolve them.
 
 ### Files Created/Modified
+
 | File | Purpose |
 |------|---------|
-| `/Users/twoedge/Dev/dbt/PLAN.md` | Added and updated the universal tool-layer execution checklist. |
-| `/Users/twoedge/Dev/dbt/CAPABILITY_TOOL_MATRIX.md` | Inventory of user/admin/server capabilities, voice availability, safety eligibility, consent, and parity status. |
-| `/Users/twoedge/Dev/dbt/tests/unit/capability-tool-matrix.test.js` | Matrix shape and critical-gap validation. |
-| `/Users/twoedge/Dev/dbt/server/app.js` | Added canonical Today route and safety plan/event routes. |
-| `/Users/twoedge/Dev/dbt/server/db.js` | Added `getToday`, safety plan methods, safety event list/resolve, acute safety episode persistence, and local-date anchor completion scoping. |
-| `/Users/twoedge/Dev/dbt/server/auth/validation.js` | Added safety plan/event/resolution validators. |
-| `/Users/twoedge/Dev/dbt/public/js/app.js` | Added canonical Today refresh after bootstrap/onboarding. |
-| `/Users/twoedge/Dev/dbt/public/index.html` | Added signed-in Safety Plan / Help Now view and nav entry. |
-| `/Users/twoedge/Dev/dbt/public/css/app.css` | Added Safety view to the existing card styling set. |
-| `/Users/twoedge/Dev/dbt/tests/api/pass2-timezone-contract.test.js` | Added canonical Today, invalid date/timezone, SQL lazy creation, and cross-date anchor completion coverage. |
-| `/Users/twoedge/Dev/dbt/tests/api/safety-routes.test.js` | Added safety plan/event route coverage. |
-| `/Users/twoedge/Dev/dbt/tests/browser/pass3-check-in.spec.js` | Added browser coverage proving Today uses `/api/today`. |
-| `/Users/twoedge/Dev/dbt/tests/browser/safety-plan.spec.js` | Added Safety Plan / Help Now browser coverage, including Coach-created acute episode resolution. |
-| `/Users/twoedge/Dev/dbt/db/migrations/018_safety_episodes.sql` | Added safety event resolution fields and `safety_episodes`. |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_universal-tool-layer-slice1-slice2-qa.md` | QA report from the review agent. |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_slice3_pretask_verification.md` | Pre-task verification report for remaining Slice 3 gaps. |
-| `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_slice3_qa_review.md` | Final Slice 3 QA report and evidence. |
+| `PLAN.md` | Added and updated the universal tool-layer execution checklist. |
+| `CAPABILITY_TOOL_MATRIX.md` | Inventory of user/admin/server capabilities, voice availability, safety eligibility, consent, and parity status. |
+| `tests/unit/capability-tool-matrix.test.js` | Matrix shape and critical-gap validation. |
+| `server/app.js` | Added canonical Today route and safety plan/event routes. |
+| `server/db.js` | Added `getToday`, safety plan methods, safety event list/resolve, acute safety episode persistence, and local-date anchor completion scoping. |
+| `server/auth/validation.js` | Added safety plan/event/resolution validators. |
+| `public/js/app.js` | Added canonical Today refresh after bootstrap/onboarding. |
+| `public/index.html` | Added signed-in Safety Plan / Help Now view and nav entry. |
+| `public/css/app.css` | Added Safety view to the existing card styling set. |
+| `tests/api/pass2-timezone-contract.test.js` | Added canonical Today, invalid date/timezone, SQL lazy creation, and cross-date anchor completion coverage. |
+| `tests/api/safety-routes.test.js` | Added safety plan/event route coverage. |
+| `tests/browser/pass3-check-in.spec.js` | Added browser coverage proving Today uses `/api/today`. |
+| `tests/browser/safety-plan.spec.js` | Added Safety Plan / Help Now browser coverage, including Coach-created acute episode resolution. |
+| `db/migrations/018_safety_episodes.sql` | Added safety event resolution fields and `safety_episodes`. |
+| `context_history/contexts/2026-05-14_universal-tool-layer-slice1-slice2-qa.md` | QA report from the review agent. |
+| `context_history/contexts/2026-05-14_slice3_pretask_verification.md` | Pre-task verification report for remaining Slice 3 gaps. |
+| `context_history/contexts/2026-05-14_slice3_qa_review.md` | Final Slice 3 QA report and evidence. |
 
 ### Key Decisions
 - Reused `getAppBootstrap` for `db.getToday` so canonical Today and app bootstrap share the existing lazy routine/daily-plan creation logic.
@@ -61,7 +62,7 @@ completed through Slice 3
 - Convert the route-level acute safety policy into a catalog/tool-name keyed policy during Slice 7.
 
 ### Related Files
-- `/Users/twoedge/Dev/dbt/PLAN.md`
-- `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_universal-tool-layer-slice1-slice2-qa.md`
-- `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_slice3_pretask_verification.md`
-- `/Users/twoedge/Dev/dbt/context_history/contexts/2026-05-14_slice3_qa_review.md`
+- `PLAN.md`
+- `context_history/contexts/2026-05-14_universal-tool-layer-slice1-slice2-qa.md`
+- `context_history/contexts/2026-05-14_slice3_pretask_verification.md`
+- `context_history/contexts/2026-05-14_slice3_qa_review.md`

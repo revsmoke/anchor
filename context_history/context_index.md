@@ -35,3 +35,6 @@
 - 2026-05-14: [Universal Tool Layer Slices 1-3 Implementation](contexts/2026-05-14_universal-tool-layer-slice1-3-implementation.md)
 - 2026-05-14: [Universal Tool Layer Slice 3 Pre-task Verification](contexts/2026-05-14_slice3_pretask_verification.md)
 - 2026-05-14: [Universal Tool Layer Slice 3 QA Review](contexts/2026-05-14_slice3_qa_review.md)
+- 2026-05-15: [PR #3 Review Triage](contexts/2026-05-15_pr3_review_triage.md)
+- 2026-05-15: [PR #3 Follow-up QA](contexts/2026-05-15_pr3_followup_qa.md)
+- 2026-05-15: [PR #3 Review Response](contexts/2026-05-15_pr3_review_response.md)

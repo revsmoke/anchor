@@ -51,6 +51,7 @@ function createDateSpyDb() {
     },
     async getToday(userId, options) {
       calls.push(["today", userId, options]);
+      const activeEpisode = await this.getActiveSafetyEpisode(userId);
       return {
         date: options.localDate,
         timezone: options.timezone,
@@ -66,9 +67,15 @@ function createDateSpyDb() {
         focusPlan: null,
         diaryStatus: { completionState: "not_started" },
         recommendedSkill: null,
-        safetyStatus: { riskTier: "normal", activeEpisode: null },
+        safetyStatus: {
+          riskTier: activeEpisode ? "acute" : "normal",
+          activeEpisode
+        },
         session: { authenticated: true }
       };
+    },
+    async getActiveSafetyEpisode() {
+      return null;
     },
     async saveRoutineSetup(userId, anchors, options) {
       calls.push(["routines", userId, options]);
@@ -128,6 +135,33 @@ describe("Pass 2 date and timezone contract", () => {
       recommendedSkill: null,
       safetyStatus: { riskTier: "normal", activeEpisode: null },
       session: { authenticated: true }
+    });
+  });
+
+  test("canonical today route exposes active acute safety state", async () => {
+    const db = createDateSpyDb();
+    db.getActiveSafetyEpisode = async () => ({
+      id: "safety_episode_active",
+      userId: "user_1",
+      status: "active",
+      openedAt: "2026-05-14T12:00:00.000Z",
+      sourceEventId: "safety_event_1"
+    });
+    const app = createApp({ db, now: () => new Date("2026-05-12T03:30:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-01-15", {
+      headers: { cookie: "anchor_session=token_1" }
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.safetyStatus).toMatchObject({
+      riskTier: "acute",
+      activeEpisode: {
+        id: "safety_episode_active",
+        status: "active",
+        sourceEventId: "safety_event_1"
+      }
     });
   });
 
@@ -390,6 +424,35 @@ describeSql("Pass 2 SQL-backed date contract", () => {
     expect(planCount.count).toBe(1);
   });
 
+  test("canonical today route exposes active acute safety state from persistence", async () => {
+    const user = await db.createUser({
+      email: "active-acute-today@example.com",
+      passwordHash: "hash",
+      timezone: "UTC",
+      locale: "en-US"
+    });
+    await db.saveSafetyEvent(user.id, {
+      riskTier: "acute",
+      triggerType: "voice_tool",
+      outcome: "acute_lock",
+      context: { source: "sql-test" }
+    });
+    const session = await db.createSession(user.id);
+    const app = createApp({ db, now: () => new Date("2026-05-14T13:00:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-05-14", {
+      headers: { cookie: `anchor_session=${session.token}` }
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.safetyStatus.riskTier).toBe("acute");
+    expect(body.data.safetyStatus.activeEpisode).toMatchObject({
+      status: "active",
+      sourceEventId: expect.any(String)
+    });
+  });
+
   test("anchor completion cannot complete an anchor from a different local date", async () => {
     const user = await db.createUser({
       email: "stale-anchor-route@example.com",
@@ -420,7 +483,7 @@ describeSql("Pass 2 SQL-backed date contract", () => {
 
     const response = await app.fetch(jsonRequest(`/api/today/anchors/${setup.today[0].id}/complete?date=2026-05-13`, {
       completedAt: "2026-05-13T09:00:00.000Z",
-      checkInId: setup.today[0].id
+      checkInId: null
     }, { cookie: `anchor_session=${session.token}` }));
 
     expect(response.status).toBe(404);

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { hashPassword, verifyPassword } from "./auth/passwords.js";
+import { buildTodayStateFromBootstrap } from "./db.js";
 import {
   DIARY_EMOTION_FIELDS,
   DIARY_URGE_FIELDS,
@@ -536,7 +537,12 @@ async function handleToday(db, request, url, now) {
   if (!dateOptions.ok) return invalidDailyDateResponse("invalid_today_date", dateOptions.message);
   const today = typeof db.getToday === "function"
     ? await db.getToday(user.id, dateOptions.value)
-    : todayStateFromBootstrap(await db.getAppBootstrap(user.id, dateOptions.value), dateOptions.value);
+    : buildTodayStateFromBootstrap(await db.getAppBootstrap(user.id, dateOptions.value), {
+      ...dateOptions.value,
+      activeSafetyEpisode: typeof db.getActiveSafetyEpisode === "function"
+        ? await db.getActiveSafetyEpisode(user.id)
+        : null
+    });
 
   return jsonOk(today, {
     headers: { "cache-control": "no-store" }
@@ -1524,21 +1530,6 @@ function consentRequired() {
     status: 403,
     requestId: createRequestId()
   });
-}
-
-function todayStateFromBootstrap(bootstrap, dateOptions = {}) {
-  return {
-    date: dateOptions.localDate ?? bootstrap.dailyPlan?.date ?? null,
-    timezone: dateOptions.timezone ?? null,
-    dailyPlan: bootstrap.dailyPlan ?? null,
-    anchors: bootstrap.today ?? [],
-    nextBestStep: bootstrap.dailyPlan?.nextBestStep ?? null,
-    focusPlan: bootstrap.focusPlan ?? null,
-    diaryStatus: { completionState: "not_started" },
-    recommendedSkill: null,
-    safetyStatus: { riskTier: "normal", activeEpisode: null },
-    session: { authenticated: true }
-  };
 }
 
 function recommendNextAction(checkIn) {

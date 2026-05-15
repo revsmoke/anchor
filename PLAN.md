@@ -11,6 +11,21 @@
 - [ ] Assign subagents for pre-task verification and QA review after each code-writing slice.
 - [ ] At session end, update project history and NotebookLM project memory with changes, tests, risks, and next steps.
 
+## PR #3 Review Response - 2026-05-15
+
+- [x] Confirm branch, repo status, and relevant file locations without changing product code.
+- [x] Delegate PR #3 comment triage to an agent and record findings in `context_history/contexts/2026-05-15_pr3_review_triage.md`.
+- [x] Fix context-history markdown portability and table spacing for the Slice 1-3 implementation report.
+- [x] Add a safety-events-to-safety-episodes foreign key in migration 018.
+- [x] Clear stale Safety view episode-resolution UI when no open acute event remains.
+- [x] Reuse the shared Today-state builder in the route fallback and expose active acute episode state from `GET /api/today`.
+- [x] Fix the stale-anchor API test to avoid passing an anchor id as `checkInId`.
+- [x] Strengthen browser Today coverage to wait for a successful `/api/today` response.
+- [x] Add API/browser coverage for active acute Today state and resolved Safety UI clearing.
+- [x] Run targeted API/unit tests, targeted browser tests, full API/unit suite, migration, whitespace, and portability checks.
+- [x] Delegate final QA review of the local PR #3 fixes.
+- [ ] Record final response context and push the PR branch update.
+
 ## Slice 1: Capability Inventory And Matrix
 
 - [x] Write red/verification checks that prove `CAPABILITY_TOOL_MATRIX.md` exists and contains required columns.
@@ -473,3 +488,17 @@ The prior resolution pass already addressed earlier PR comments in commit `93001
 - [x] Fix Safety view open-event discovery and duplicate Help Now UI append behavior.
 - [x] Run focused API/unit/browser tests and full API/unit suite with test env pinned.
 - [x] Write QA report at `context_history/contexts/2026-05-14_slice3_qa_review.md`.
+
+## PR #3 Final QA Review - 2026-05-15
+
+- [x] Confirm current branch and local diff scope without reverting or editing implementation files.
+- [x] Review PR #3 follow-up fixes for context-history absolute paths/table spacing.
+- [x] Review stale Safety resolution UI clearing behavior.
+- [x] Review duplicated Today state helper reuse.
+- [x] Review stale-anchor test `checkInId` handling.
+- [x] Review browser `/api/today` successful response assertion.
+- [x] Review `safety_episode` FK migration.
+- [x] Review `GET /api/today` active acute safety status behavior.
+- [x] Run focused verification commands where practical.
+- [x] Write concise QA report to `context_history/contexts/2026-05-15_pr3_followup_qa.md`.
+- [x] Add report entry to `context_history/context_index.md`.

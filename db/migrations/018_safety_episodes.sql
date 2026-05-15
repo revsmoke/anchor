@@ -15,3 +15,19 @@ create table if not exists safety_episodes (
 
 alter table safety_events
   add column if not exists safety_episode_id uuid;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'safety_events_safety_episode_id_fkey'
+      and conrelid = 'safety_events'::regclass
+  ) then
+    alter table safety_events
+      add constraint safety_events_safety_episode_id_fkey
+      foreign key (safety_episode_id)
+      references safety_episodes(id)
+      on delete set null;
+  end if;
+end $$;

@@ -87,6 +87,11 @@ test("resolves an acute episode that started from coach safety mode", async ({ p
   await page.getByLabel("Resolution note").fill("I contacted support and am with another person.");
   await page.getByRole("button", { name: "Resolve safety episode" }).click();
   await expect(page.getByText("Safety episode resolved. Normal actions are available again.")).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "Safety", exact: true }).click();
+  await expect(page.locator("#safety-resolution-form")).toBeHidden();
+  await expect(page.getByLabel("Resolution note")).toHaveValue("");
+  await expect(page.getByText("Active safety episode found. Resolve it after support is reached.")).toBeHidden();
 
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await page.getByLabel("Must-do").fill("drink water");

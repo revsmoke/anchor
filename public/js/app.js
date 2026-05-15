@@ -1645,9 +1645,13 @@ async function loadOpenSafetyEpisode() {
     .sort((left, right) => String(right.detectedAt || "").localeCompare(String(left.detectedAt || "")))[0];
 
   if (!openAcuteEvent) {
-    if (!activeSafetyEventId) {
-      safetyResolutionForm.hidden = true;
-    }
+    activeSafetyEventId = "";
+    safetyResolutionForm.hidden = true;
+    safetyResolutionNoteEl.value = "";
+    safetyEventStatusEl.hidden = true;
+    safetyEventStatusEl.textContent = "";
+    safetyEventErrorEl.hidden = true;
+    safetyEventErrorEl.textContent = "";
     return;
   }
 
