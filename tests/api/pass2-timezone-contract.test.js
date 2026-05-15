@@ -49,6 +49,34 @@ function createDateSpyDb() {
         nextStep: "main_app"
       };
     },
+    async getToday(userId, options) {
+      calls.push(["today", userId, options]);
+      const activeEpisode = await this.getActiveSafetyEpisode(userId);
+      return {
+        date: options.localDate,
+        timezone: options.timezone,
+        dailyPlan: {
+          id: "plan_1",
+          date: options.localDate,
+          nextBestStep: "Start your morning anchor."
+        },
+        anchors: [
+          { id: "anchor_morning", type: "morning", status: "scheduled" }
+        ],
+        nextBestStep: "Start your morning anchor.",
+        focusPlan: null,
+        diaryStatus: { completionState: "not_started" },
+        recommendedSkill: null,
+        safetyStatus: {
+          riskTier: activeEpisode ? "acute" : "normal",
+          activeEpisode
+        },
+        session: { authenticated: true }
+      };
+    },
+    async getActiveSafetyEpisode() {
+      return null;
+    },
     async saveRoutineSetup(userId, anchors, options) {
       calls.push(["routines", userId, options]);
       return { routineTemplates: [], today: [], dailyPlan: { id: "plan_1", date: options.localDate } };
@@ -73,6 +101,88 @@ function createDateSpyDb() {
 }
 
 describe("Pass 2 date and timezone contract", () => {
+  test("canonical today route requires an authenticated session", async () => {
+    const app = createApp({ db: createDateSpyDb(), now: () => new Date("2026-05-12T03:30:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-05-12"));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.error.code).toBe("unauthorized");
+  });
+
+  test("canonical today route passes resolved local date into db helper and returns full daily state", async () => {
+    const db = createDateSpyDb();
+    const app = createApp({ db, now: () => new Date("2026-05-12T03:30:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-01-15", {
+      headers: { cookie: "anchor_session=token_1" }
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(db.calls).toEqual([
+      ["today", "user_1", { localDate: "2026-01-15", timezone: "Pacific/Auckland" }]
+    ]);
+    expect(body.data).toMatchObject({
+      date: "2026-01-15",
+      timezone: "Pacific/Auckland",
+      dailyPlan: { id: "plan_1", date: "2026-01-15" },
+      anchors: [{ id: "anchor_morning", type: "morning", status: "scheduled" }],
+      nextBestStep: "Start your morning anchor.",
+      focusPlan: null,
+      diaryStatus: { completionState: "not_started" },
+      recommendedSkill: null,
+      safetyStatus: { riskTier: "normal", activeEpisode: null },
+      session: { authenticated: true }
+    });
+  });
+
+  test("canonical today route exposes active acute safety state", async () => {
+    const db = createDateSpyDb();
+    db.getActiveSafetyEpisode = async () => ({
+      id: "safety_episode_active",
+      userId: "user_1",
+      status: "active",
+      openedAt: "2026-05-14T12:00:00.000Z",
+      sourceEventId: "safety_event_1"
+    });
+    const app = createApp({ db, now: () => new Date("2026-05-12T03:30:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-01-15", {
+      headers: { cookie: "anchor_session=token_1" }
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.safetyStatus).toMatchObject({
+      riskTier: "acute",
+      activeEpisode: {
+        id: "safety_episode_active",
+        status: "active",
+        sourceEventId: "safety_event_1"
+      }
+    });
+  });
+
+  test("canonical today route returns a 400 for invalid date and timezone inputs", async () => {
+    const invalidDateApp = createApp({ db: createDateSpyDb(), now: () => new Date("2026-05-12T03:30:00.000Z") });
+    const invalidDate = await invalidDateApp.fetch(request("/api/today?date=2026-99-99", {
+      headers: { cookie: "anchor_session=token_1" }
+    }));
+    expect(invalidDate.status).toBe(400);
+    expect((await invalidDate.json()).error.code).toBe("invalid_today_date");
+
+    const invalidTimezoneDb = createDateSpyDb();
+    invalidTimezoneDb.getUserDailyTimezone = async () => "";
+    const invalidTimezoneApp = createApp({ db: invalidTimezoneDb, now: () => new Date("2026-05-12T03:30:00.000Z") });
+    const invalidTimezone = await invalidTimezoneApp.fetch(request("/api/today?timezone=Not/AZone", {
+      headers: { cookie: "anchor_session=token_1" }
+    }));
+    expect(invalidTimezone.status).toBe(400);
+    expect((await invalidTimezone.json()).error.code).toBe("invalid_today_date");
+  });
+
   test("daily-state routes pass one resolved user-local date into db helpers", async () => {
     const db = createDateSpyDb();
     const app = createApp({ db, now: () => new Date("2026-05-12T03:30:00.000Z") });
@@ -252,6 +362,144 @@ describeSql("Pass 2 SQL-backed date contract", () => {
     expect(routineCount.count).toBe(3);
     expect(planCount.count).toBe(1);
   });
+
+  test("canonical today route lazily creates daily state once for a returning user", async () => {
+    const user = await db.createUser({
+      email: "returning-today-route@example.com",
+      passwordHash: "hash",
+      timezone: "UTC",
+      locale: "en-US"
+    });
+    await db.saveConsentRecords(user.id, [
+      { type: "crisis_limits", granted: true },
+      { type: "privacy_choices", granted: true },
+      { type: "voice_audio", granted: true }
+    ]);
+    await db.saveUserProfile(user.id, {
+      timezone: "America/Detroit",
+      wakeTime: "07:00",
+      sleepTime: "23:00",
+      goals: ["stability"],
+      struggles: ["mornings"],
+      therapyStatus: "self_directed"
+    });
+    await db.saveRoutineSetup(user.id, [
+      { type: "morning", targetTime: "07:30", steps: ["check_in"] },
+      { type: "midday", targetTime: "12:30", steps: ["status"] },
+      { type: "evening", targetTime: "21:00", steps: ["diary"] }
+    ], { localDate: "2026-05-12", timezone: "America/Detroit" });
+    const session = await db.createSession(user.id);
+    const app = createApp({ db, now: () => new Date("2026-05-13T13:00:00.000Z") });
+    const headers = { cookie: `anchor_session=${session.token}` };
+
+    const first = await app.fetch(request("/api/today?date=2026-05-13", { headers }));
+    const second = await app.fetch(request("/api/today?date=2026-05-13", { headers }));
+    const body = await second.json();
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(body.data).toMatchObject({
+      date: "2026-05-13",
+      timezone: "America/Detroit",
+      dailyPlan: { date: "2026-05-13" },
+      anchors: [
+        { type: "morning", status: "scheduled" },
+        { type: "midday", status: "scheduled" },
+        { type: "evening", status: "scheduled" }
+      ],
+      session: { authenticated: true }
+    });
+
+    const [routineCount] = await sql`
+      select count(*)::int as count
+      from routine_instances
+      where user_id = ${user.id} and instance_date = '2026-05-13'
+    `;
+    const [planCount] = await sql`
+      select count(*)::int as count
+      from daily_plans
+      where user_id = ${user.id} and plan_date = '2026-05-13'
+    `;
+    expect(routineCount.count).toBe(3);
+    expect(planCount.count).toBe(1);
+  });
+
+  test("canonical today route exposes active acute safety state from persistence", async () => {
+    const user = await db.createUser({
+      email: "active-acute-today@example.com",
+      passwordHash: "hash",
+      timezone: "UTC",
+      locale: "en-US"
+    });
+    await db.saveSafetyEvent(user.id, {
+      riskTier: "acute",
+      triggerType: "voice_tool",
+      outcome: "acute_lock",
+      context: { source: "sql-test" }
+    });
+    const session = await db.createSession(user.id);
+    const app = createApp({ db, now: () => new Date("2026-05-14T13:00:00.000Z") });
+
+    const response = await app.fetch(request("/api/today?date=2026-05-14", {
+      headers: { cookie: `anchor_session=${session.token}` }
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.safetyStatus.riskTier).toBe("acute");
+    expect(body.data.safetyStatus.activeEpisode).toMatchObject({
+      status: "active",
+      sourceEventId: expect.any(String)
+    });
+  });
+
+  test("anchor completion cannot complete an anchor from a different local date", async () => {
+    const user = await db.createUser({
+      email: "stale-anchor-route@example.com",
+      passwordHash: "hash",
+      timezone: "UTC",
+      locale: "en-US"
+    });
+    await db.saveConsentRecords(user.id, [
+      { type: "crisis_limits", granted: true },
+      { type: "privacy_choices", granted: true },
+      { type: "voice_audio", granted: true }
+    ]);
+    await db.saveUserProfile(user.id, {
+      timezone: "America/Detroit",
+      wakeTime: "07:00",
+      sleepTime: "23:00",
+      goals: ["stability"],
+      struggles: ["mornings"],
+      therapyStatus: "self_directed"
+    });
+    const setup = await db.saveRoutineSetup(user.id, [
+      { type: "morning", targetTime: "07:30", steps: ["check_in"] },
+      { type: "midday", targetTime: "12:30", steps: ["status"] },
+      { type: "evening", targetTime: "21:00", steps: ["diary"] }
+    ], { localDate: "2026-05-12", timezone: "America/Detroit" });
+    const session = await db.createSession(user.id);
+    const app = createApp({ db, now: () => new Date("2026-05-13T13:00:00.000Z") });
+
+    const response = await app.fetch(jsonRequest(`/api/today/anchors/${setup.today[0].id}/complete?date=2026-05-13`, {
+      completedAt: "2026-05-13T09:00:00.000Z",
+      checkInId: null
+    }, { cookie: `anchor_session=${session.token}` }));
+
+    expect(response.status).toBe(404);
+    const [staleAnchor] = await sql`
+      select status
+      from routine_instances
+      where id = ${setup.today[0].id}
+    `;
+    const [nextDayPlanCount] = await sql`
+      select count(*)::int as count
+      from daily_plans
+      where user_id = ${user.id} and plan_date = '2026-05-13'
+    `;
+    expect(staleAnchor.status).toBe("scheduled");
+    expect(nextDayPlanCount.count).toBe(0);
+  });
 });
 
 async function resetSchema(sql) {
@@ -259,7 +507,7 @@ async function resetSchema(sql) {
     "audit_events", "export_artifacts", "offline_mutations", "delete_requests", "password_reset_tokens",
     "daily_focus_plans", "privacy_exports", "user_settings", "session_packets", "weekly_reviews",
     "voice_sessions", "chain_analyses", "coach_messages", "agent_runs", "skill_sessions",
-    "skill_definitions", "diary_entries", "behavior_targets", "diary_schemas", "safety_events",
+    "skill_definitions", "diary_entries", "behavior_targets", "diary_schemas", "safety_episodes", "safety_events",
     "routine_instances", "quick_check_ins", "routine_templates", "daily_plans", "user_profiles",
     "safety_plans", "consent_records", "sessions", "users", "app_status_snapshots"
   ];

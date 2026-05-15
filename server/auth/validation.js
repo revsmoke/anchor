@@ -278,6 +278,81 @@ export function validateQuickCheckInPayload(payload) {
   };
 }
 
+export function validateSafetyPlanPayload(payload) {
+  const warningSigns = normalizeStringList(payload?.warningSigns).slice(0, 20);
+  const steps = normalizeStringList(payload?.steps).slice(0, 20);
+  const contacts = Array.isArray(payload?.contacts)
+    ? payload.contacts.map(normalizeSafetyContact).filter(Boolean).slice(0, 10)
+    : [];
+  const crisisResources = Array.isArray(payload?.crisisResources)
+    ? payload.crisisResources.map(normalizeSafetyResource).filter(Boolean).slice(0, 10)
+    : [];
+
+  if (!warningSigns.length) return { ok: false, message: "At least one warning sign is required." };
+  if (!steps.length) return { ok: false, message: "At least one safety step is required." };
+  if (!crisisResources.length) return { ok: false, message: "At least one crisis resource is required." };
+
+  return {
+    ok: true,
+    value: {
+      warningSigns,
+      steps,
+      contacts,
+      crisisResources
+    }
+  };
+}
+
+export function validateSafetyEventPayload(payload) {
+  const riskTier = String(payload?.riskTier ?? "").trim();
+  const triggerType = String(payload?.triggerType ?? "").trim();
+  const outcome = String(payload?.outcome ?? "").trim();
+  const context = payload?.context && typeof payload.context === "object" && !Array.isArray(payload.context)
+    ? payload.context
+    : {};
+
+  if (!["elevated", "acute"].includes(riskTier)) {
+    return { ok: false, message: "Safety risk tier is required." };
+  }
+  if (!triggerType || triggerType.length > 80) {
+    return { ok: false, message: "Safety trigger type is required." };
+  }
+  if (!outcome || outcome.length > 80) {
+    return { ok: false, message: "Safety outcome is required." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      riskTier,
+      triggerType,
+      outcome,
+      context
+    }
+  };
+}
+
+export function validateSafetyEventResolutionPayload(payload) {
+  const resolutionStatus = String(payload?.resolutionStatus ?? "").trim();
+  const resolutionNote = String(payload?.resolutionNote ?? "").trim().slice(0, 1000);
+  const resolvedAt = String(payload?.resolvedAt ?? new Date().toISOString()).trim();
+
+  if (!["resolved", "dismissed"].includes(resolutionStatus)) {
+    return { ok: false, message: "Resolution status is required." };
+  }
+  if (!resolutionNote) return { ok: false, message: "Resolution note is required." };
+  if (Number.isNaN(Date.parse(resolvedAt))) return { ok: false, message: "Resolution time is required." };
+
+  return {
+    ok: true,
+    value: {
+      resolutionStatus,
+      resolutionNote,
+      resolvedAt
+    }
+  };
+}
+
 export function validateFocusPlanPayload(payload) {
   const focusText = String(payload?.focusText ?? "").trim();
   const anticipatedHardMoment = String(payload?.anticipatedHardMoment ?? "").trim();
@@ -768,6 +843,21 @@ function labelForConsent(type) {
 function normalizeStringList(value) {
   if (!Array.isArray(value)) return [];
   return value.map(item => String(item ?? "").trim()).filter(Boolean);
+}
+
+function normalizeSafetyContact(contact) {
+  const name = String(contact?.name ?? "").trim();
+  const relationship = String(contact?.relationship ?? "").trim();
+  const phone = String(contact?.phone ?? "").trim();
+  if (!name || !phone) return null;
+  return { name, relationship, phone };
+}
+
+function normalizeSafetyResource(resource) {
+  const label = String(resource?.label ?? "").trim();
+  const value = String(resource?.value ?? "").trim();
+  if (!label || !value) return null;
+  return { label, value };
 }
 
 function normalizeContextRefs(value) {

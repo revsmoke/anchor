@@ -263,6 +263,14 @@ export function createDb(databaseUrl) {
       };
     },
 
+    async getToday(userId, options = {}) {
+      const activeSafetyEpisode = await this.getActiveSafetyEpisode(userId);
+      return buildTodayStateFromBootstrap(await this.getAppBootstrap(userId, options), {
+        ...options,
+        activeSafetyEpisode
+      });
+    },
+
     async createPasswordResetToken(userId, reset) {
       const rows = await sql`
         insert into password_reset_tokens (
@@ -477,6 +485,64 @@ export function createDb(databaseUrl) {
       return quickCheckInFromRow(rows[0]);
     },
 
+    async getSafetyPlan(userId) {
+      const rows = await sql`
+        insert into safety_plans (user_id)
+        values (${userId})
+        on conflict (user_id) do update set user_id = excluded.user_id
+        returning user_id::text, warning_signs, steps, contacts, crisis_resources
+      `;
+      return safetyPlanFromRow(rows[0]);
+    },
+
+    async saveSafetyPlan(userId, plan) {
+      const rows = await sql`
+        insert into safety_plans (
+          user_id,
+          warning_signs,
+          steps,
+          contacts,
+          crisis_resources
+        )
+        values (
+          ${userId},
+          ${sql.json(plan.warningSigns)},
+          ${sql.json(plan.steps)},
+          ${sql.json(plan.contacts)},
+          ${sql.json(plan.crisisResources)}
+        )
+        on conflict (user_id) do update set
+          warning_signs = excluded.warning_signs,
+          steps = excluded.steps,
+          contacts = excluded.contacts,
+          crisis_resources = excluded.crisis_resources,
+          updated_at = now()
+        returning user_id::text, warning_signs, steps, contacts, crisis_resources
+      `;
+      return safetyPlanFromRow(rows[0]);
+    },
+
+    async listSafetyEvents(userId) {
+      const rows = await sql`
+        select
+          id::text,
+          user_id::text,
+          detected_at,
+          risk_tier,
+          trigger_type,
+          outcome,
+          context,
+          resolution_status,
+          resolution_note,
+          resolved_at,
+          safety_episode_id::text
+        from safety_events
+        where user_id = ${userId}
+        order by detected_at desc, id desc
+      `;
+      return rows.map(safetyEventFromRow);
+    },
+
     async saveSafetyEvent(userId, event) {
       const rows = await sql`
         insert into safety_events (user_id, risk_tier, trigger_type, outcome, context)
@@ -487,9 +553,105 @@ export function createDb(databaseUrl) {
           ${event.outcome},
           ${sql.json(event.context)}
         )
-        returning id::text, user_id::text, risk_tier, trigger_type, outcome, context
+        returning
+          id::text,
+          user_id::text,
+          detected_at,
+          risk_tier,
+          trigger_type,
+          outcome,
+          context,
+          resolution_status,
+          resolution_note,
+          resolved_at,
+          safety_episode_id::text
       `;
-      return safetyEventFromRow(rows[0]);
+      const safetyEvent = safetyEventFromRow(rows[0]);
+      if (safetyEvent.riskTier !== "acute") return safetyEvent;
+
+      const episodeRows = await sql`
+        insert into safety_episodes (user_id, source_event_id, status)
+        values (${userId}, ${safetyEvent.id}, 'active')
+        returning id::text, user_id::text, source_event_id::text, status, opened_at, resolved_at, resolution_note
+      `;
+      const episode = safetyEpisodeFromRow(episodeRows[0]);
+      const updatedRows = await sql`
+        update safety_events
+        set safety_episode_id = ${episode.id}
+        where id = ${safetyEvent.id}
+          and user_id = ${userId}
+        returning
+          id::text,
+          user_id::text,
+          detected_at,
+          risk_tier,
+          trigger_type,
+          outcome,
+          context,
+          resolution_status,
+          resolution_note,
+          resolved_at,
+          safety_episode_id::text
+      `;
+      return {
+        ...safetyEventFromRow(updatedRows[0]),
+        safetyEpisode: episode
+      };
+    },
+
+    async resolveSafetyEvent(userId, eventId, resolution) {
+      const rows = await sql`
+        update safety_events
+        set
+          resolution_status = ${resolution.resolutionStatus},
+          resolution_note = ${resolution.resolutionNote},
+          resolved_at = ${resolution.resolvedAt}
+        where id = ${eventId}
+          and user_id = ${userId}
+        returning
+          id::text,
+          user_id::text,
+          detected_at,
+          risk_tier,
+          trigger_type,
+          outcome,
+          context,
+          resolution_status,
+          resolution_note,
+          resolved_at,
+          safety_episode_id::text
+      `;
+      if (!rows[0]) return null;
+      const safetyEvent = safetyEventFromRow(rows[0]);
+      if (!safetyEvent.safetyEpisodeId) return safetyEvent;
+
+      const episodeRows = await sql`
+        update safety_episodes
+        set
+          status = 'resolved',
+          resolved_at = ${resolution.resolvedAt},
+          resolution_note = ${resolution.resolutionNote}
+        where id = ${safetyEvent.safetyEpisodeId}
+          and user_id = ${userId}
+        returning id::text, user_id::text, source_event_id::text, status, opened_at, resolved_at, resolution_note
+      `;
+      return {
+        ...safetyEvent,
+        safetyEpisode: episodeRows[0] ? safetyEpisodeFromRow(episodeRows[0]) : null
+      };
+    },
+
+    async getActiveSafetyEpisode(userId) {
+      const rows = await sql`
+        select id::text, user_id::text, source_event_id::text, status, opened_at, resolved_at, resolution_note
+        from safety_episodes
+        where user_id = ${userId}
+          and status = 'active'
+          and resolved_at is null
+        order by opened_at desc, id desc
+        limit 1
+      `;
+      return rows[0] ? safetyEpisodeFromRow(rows[0]) : null;
     },
 
     async completeRoutineInstance(userId, anchorId, completion, options = {}) {
@@ -504,6 +666,7 @@ export function createDb(databaseUrl) {
         where ri.routine_template_id = rt.id
           and ri.id = ${anchorId}
           and ri.user_id = ${userId}
+          and ri.instance_date = ${localDate}
         returning
           ri.id::text,
           ri.user_id::text,
@@ -1505,6 +1668,25 @@ function userFromRow(row) {
   };
 }
 
+export function buildTodayStateFromBootstrap(bootstrap, options = {}) {
+  const activeEpisode = options.activeSafetyEpisode ?? null;
+  return {
+    date: options.localDate ?? bootstrap.dailyPlan?.date ?? null,
+    timezone: options.timezone ?? null,
+    dailyPlan: bootstrap.dailyPlan ?? null,
+    anchors: bootstrap.today ?? [],
+    nextBestStep: bootstrap.dailyPlan?.nextBestStep ?? null,
+    focusPlan: bootstrap.focusPlan ?? null,
+    diaryStatus: { completionState: "not_started" },
+    recommendedSkill: null,
+    safetyStatus: {
+      riskTier: activeEpisode ? "acute" : "normal",
+      activeEpisode
+    },
+    session: { authenticated: true }
+  };
+}
+
 function consentFromRow(row) {
   return {
     type: row.consent_type ?? row.type,
@@ -1623,14 +1805,45 @@ function quickCheckInFromRow(row) {
   };
 }
 
+function safetyPlanFromRow(row) {
+  return {
+    userId: row.user_id ?? row.userId,
+    warningSigns: row.warning_signs ?? row.warningSigns ?? [],
+    steps: row.steps ?? [],
+    contacts: row.contacts ?? [],
+    crisisResources: row.crisis_resources ?? row.crisisResources ?? []
+  };
+}
+
 function safetyEventFromRow(row) {
+  const detectedAt = row.detected_at ?? row.detectedAt;
+  const resolvedAt = row.resolved_at ?? row.resolvedAt;
   return {
     id: row.id,
     userId: row.user_id ?? row.userId,
+    ...(detectedAt ? { detectedAt: detectedAt instanceof Date ? detectedAt.toISOString() : detectedAt } : {}),
     riskTier: row.risk_tier ?? row.riskTier,
     triggerType: row.trigger_type ?? row.triggerType,
     outcome: row.outcome,
-    context: row.context
+    context: row.context,
+    resolutionStatus: row.resolution_status ?? row.resolutionStatus ?? "open",
+    resolutionNote: row.resolution_note ?? row.resolutionNote ?? "",
+    resolvedAt: resolvedAt instanceof Date ? resolvedAt.toISOString() : resolvedAt ?? null,
+    safetyEpisodeId: row.safety_episode_id ?? row.safetyEpisodeId ?? null
+  };
+}
+
+function safetyEpisodeFromRow(row) {
+  const openedAt = row.opened_at ?? row.openedAt;
+  const resolvedAt = row.resolved_at ?? row.resolvedAt;
+  return {
+    id: row.id,
+    userId: row.user_id ?? row.userId,
+    sourceEventId: row.source_event_id ?? row.sourceEventId,
+    status: row.status,
+    openedAt: openedAt instanceof Date ? openedAt.toISOString() : openedAt,
+    resolvedAt: resolvedAt instanceof Date ? resolvedAt.toISOString() : resolvedAt ?? null,
+    resolutionNote: row.resolution_note ?? row.resolutionNote ?? ""
   };
 }
 

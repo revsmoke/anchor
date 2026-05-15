@@ -39,6 +39,7 @@
           <button type="button" data-view-target="diary" aria-pressed="false">Diary</button>
           <button type="button" data-view-target="skills" aria-pressed="false">Skills</button>
           <button type="button" data-view-target="coach" aria-pressed="false">Coach</button>
+          <button type="button" data-view-target="safety" aria-pressed="false">Safety</button>
           <button type="button" data-view-target="chain" aria-pressed="false">Chain</button>
           <button type="button" data-view-target="voice" aria-pressed="false">Voice</button>
           <button type="button" data-view-target="insights" aria-pressed="false">Insights</button>
@@ -268,6 +269,7 @@
           <button type="button" data-view-target="focus-plan" class="button-secondary">Pick focus</button>
           <button type="button" data-view-target="midday" class="button-secondary">Go to Midday anchor</button>
           <button type="button" data-view-target="skills" class="button-secondary">Practice a skill</button>
+          <button type="button" data-view-target="safety" class="button-secondary">Open safety plan</button>
           <button type="button" data-view-target="voice" class="button-secondary">Open voice</button>
         </div>
       </section>
@@ -746,6 +748,88 @@
             <a href="tel:911">Call 911</a>
             <a href="sms:988">Call or text 988</a>
           </div>
+        </section>
+      </section>
+
+      <section class="safety-card" id="safety-section" aria-labelledby="safety-heading" hidden>
+        <div>
+          <p class="section-label">Safety / Help Now</p>
+          <h2 id="safety-heading">Safety Plan</h2>
+          <p class="boundary">Use this plan to reach supports and crisis resources. Anchor is not emergency care.</p>
+        </div>
+
+        <div class="crisis-actions" aria-label="Safety Plan crisis resources">
+          <a href="tel:911">Call 911</a>
+          <a href="sms:988">Call or text 988</a>
+        </div>
+
+        <form id="safety-plan-form" class="consent-form" novalidate>
+          <label>
+            Warning signs
+            <textarea id="safety-warning-signs" name="warningSigns" rows="2" placeholder="urge spike, shutting down"></textarea>
+          </label>
+          <label>
+            Safety steps
+            <textarea id="safety-steps" name="steps" rows="2" placeholder="paced breathing, text support"></textarea>
+          </label>
+
+          <fieldset>
+            <legend>Support contact</legend>
+            <div class="field-grid">
+              <label>
+                Support contact name
+                <input id="safety-contact-name" name="contactName" type="text">
+              </label>
+              <label>
+                Support contact relationship
+                <input id="safety-contact-relationship" name="contactRelationship" type="text">
+              </label>
+              <label>
+                Support contact phone
+                <input id="safety-contact-phone" name="contactPhone" type="text">
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Crisis resource</legend>
+            <div class="field-grid">
+              <label>
+                Crisis resource label
+                <input id="safety-resource-label" name="resourceLabel" type="text">
+              </label>
+              <label>
+                Crisis resource value
+                <input id="safety-resource-value" name="resourceValue" type="text">
+              </label>
+            </div>
+          </fieldset>
+
+          <button type="submit">Save Safety Plan</button>
+          <div id="safety-plan-error" class="error" role="alert" hidden></div>
+          <div id="safety-plan-status" class="success" role="status" hidden></div>
+        </form>
+
+        <div id="safety-resources" class="routine-result" hidden>
+          <h3>Saved crisis resources</h3>
+          <ul id="safety-resources-list"></ul>
+        </div>
+
+        <section class="safety-mode" aria-labelledby="help-now-heading">
+          <h3 id="help-now-heading">Help Now</h3>
+          <p>Log an acute safety event when normal actions should pause until support is reached.</p>
+          <div class="result-actions">
+            <button type="button" id="safety-help-now">Help Now</button>
+          </div>
+          <div id="safety-event-error" class="error" role="alert" hidden></div>
+          <div id="safety-event-status" class="success" role="status" hidden></div>
+          <form id="safety-resolution-form" class="consent-form" novalidate hidden>
+            <label>
+              Resolution note
+              <textarea id="safety-resolution-note" name="resolutionNote" rows="2"></textarea>
+            </label>
+            <button type="submit">Resolve safety episode</button>
+          </form>
         </section>
       </section>
 

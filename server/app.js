@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { hashPassword, verifyPassword } from "./auth/passwords.js";
+import { buildTodayStateFromBootstrap } from "./db.js";
 import {
   DIARY_EMOTION_FIELDS,
   DIARY_URGE_FIELDS,
@@ -26,6 +27,9 @@ import {
   validateSessionPacketPayload,
   validateSettingsPayload,
   validateRoutinePayload,
+  validateSafetyEventPayload,
+  validateSafetyEventResolutionPayload,
+  validateSafetyPlanPayload,
   validateSignupPayload,
   validateVoiceClientSecretPayload,
   validateVoiceEndPayload
@@ -57,6 +61,8 @@ export function createApp({
       const url = new URL(request.url);
       const csrfFailure = validateCsrfIfNeeded(config, request, url);
       if (csrfFailure) return csrfFailure;
+      const acuteSafetyLock = await acuteSafetyLockIfNeeded(db, request, url);
+      if (acuteSafetyLock) return acuteSafetyLock;
 
       if (request.method === "GET" && url.pathname === "/api/health") {
         return handleHealth(db);
@@ -102,6 +108,10 @@ export function createApp({
         return handleAppBootstrap(db, request, url, now);
       }
 
+      if (request.method === "GET" && url.pathname === "/api/today") {
+        return handleToday(db, request, url, now);
+      }
+
       if (request.method === "POST" && url.pathname === "/api/onboarding/consent") {
         return handleConsent(db, request);
       }
@@ -116,6 +126,27 @@ export function createApp({
 
       if (request.method === "POST" && url.pathname === "/api/check-ins") {
         return handleCheckIn(db, request);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/safety-plan") {
+        return handleSafetyPlanGet(db, request);
+      }
+
+      if (["POST", "PUT"].includes(request.method) && url.pathname === "/api/safety-plan") {
+        return handleSafetyPlanSave(db, request, request.method);
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/safety-events") {
+        return handleSafetyEventsList(db, request);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/safety-events") {
+        return handleSafetyEventCreate(db, request);
+      }
+
+      const safetyEventResolutionMatch = url.pathname.match(/^\/api\/safety-events\/([^/]+)\/resolution$/);
+      if (request.method === "PUT" && safetyEventResolutionMatch) {
+        return handleSafetyEventResolve(db, request, safetyEventResolutionMatch[1]);
       }
 
       if (request.method === "POST" && url.pathname === "/api/today/reset") {
@@ -497,6 +528,27 @@ async function handleAppBootstrap(db, request, url, now) {
   });
 }
 
+async function handleToday(db, request, url, now) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const dateOptions = await safeDailyDateOptions(db, user, url, now);
+  if (!dateOptions.ok) return invalidDailyDateResponse("invalid_today_date", dateOptions.message);
+  const today = typeof db.getToday === "function"
+    ? await db.getToday(user.id, dateOptions.value)
+    : buildTodayStateFromBootstrap(await db.getAppBootstrap(user.id, dateOptions.value), {
+      ...dateOptions.value,
+      activeSafetyEpisode: typeof db.getActiveSafetyEpisode === "function"
+        ? await db.getActiveSafetyEpisode(user.id)
+        : null
+    });
+
+  return jsonOk(today, {
+    headers: { "cache-control": "no-store" }
+  });
+}
+
 async function handleConsent(db, request) {
   const user = await requireUser(db, request);
   if (!user) return unauthorized();
@@ -588,6 +640,98 @@ async function handleCheckIn(db, request) {
   }
 
   return jsonOk(data, { status: 201 });
+}
+
+async function handleSafetyPlanGet(db, request) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  return jsonOk({
+    safetyPlan: await db.getSafetyPlan(user.id)
+  });
+}
+
+async function handleSafetyPlanSave(db, request, method) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const payload = await readJson(request);
+  const validation = validateSafetyPlanPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_safety_plan", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  return jsonOk({
+    safetyPlan: await db.saveSafetyPlan(user.id, validation.value)
+  }, {
+    status: method === "POST" ? 201 : 200
+  });
+}
+
+async function handleSafetyEventsList(db, request) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  return jsonOk({
+    safetyEvents: await db.listSafetyEvents(user.id)
+  });
+}
+
+async function handleSafetyEventCreate(db, request) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const payload = await readJson(request);
+  const validation = validateSafetyEventPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_safety_event", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const safetyEvent = await db.saveSafetyEvent(user.id, validation.value);
+  return jsonOk({
+    safetyEvent,
+    ...(safetyEvent.safetyEpisode ? { safetyEpisode: safetyEvent.safetyEpisode } : {})
+  }, {
+    status: 201
+  });
+}
+
+async function handleSafetyEventResolve(db, request, eventId) {
+  const user = await requireUser(db, request);
+  if (!user) return unauthorized();
+  if (!(await hasRequiredConsents(db, user.id))) return consentRequired();
+
+  const payload = await readJson(request);
+  const validation = validateSafetyEventResolutionPayload(payload);
+  if (!validation.ok) {
+    return jsonError("invalid_safety_event_resolution", validation.message, {
+      status: 400,
+      requestId: createRequestId()
+    });
+  }
+
+  const safetyEvent = await db.resolveSafetyEvent(user.id, eventId, validation.value);
+  if (!safetyEvent) {
+    return jsonError("safety_event_not_found", "Safety event could not be found.", {
+      status: 404,
+      requestId: createRequestId()
+    });
+  }
+
+  return jsonOk({
+    safetyEvent,
+    ...(safetyEvent.safetyEpisode ? { safetyEpisode: safetyEvent.safetyEpisode } : {})
+  });
 }
 
 async function handleAnchorComplete(db, request, anchorId, url, now) {
@@ -1281,6 +1425,54 @@ async function dailyDateOptions(db, user, url, now) {
     }),
     timezone
   };
+}
+
+async function safeDailyDateOptions(db, user, url, now) {
+  try {
+    return {
+      ok: true,
+      value: await dailyDateOptions(db, user, url, now)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error?.message || "Daily date options are invalid."
+    };
+  }
+}
+
+function invalidDailyDateResponse(code, message) {
+  return jsonError(code, message, {
+    status: 400,
+    requestId: createRequestId()
+  });
+}
+
+async function acuteSafetyLockIfNeeded(db, request, url) {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) return null;
+  if (isAcuteSafetyAllowedRoute(request, url)) return null;
+  if (typeof db.getActiveSafetyEpisode !== "function") return null;
+
+  const token = readSessionToken(request);
+  if (!token) return null;
+  const user = await db.getSessionUser(token);
+  if (!user) return null;
+
+  const activeEpisode = await db.getActiveSafetyEpisode(user.id);
+  if (!activeEpisode) return null;
+
+  return jsonError("acute_safety_lock", "Normal actions are locked until the active safety episode is resolved.", {
+    status: 423,
+    requestId: createRequestId()
+  });
+}
+
+function isAcuteSafetyAllowedRoute(request, url) {
+  if (request.method === "POST" && url.pathname === "/api/auth/logout") return true;
+  if (request.method === "POST" && url.pathname === "/api/safety-events") return true;
+  if (request.method === "PUT" && /^\/api\/safety-events\/[^/]+\/resolution$/.test(url.pathname)) return true;
+  if (request.method === "POST" && /^\/api\/voice\/sessions\/[^/]+\/end$/.test(url.pathname)) return true;
+  return false;
 }
 
 function validateCsrfIfNeeded(config, request, url) {
