@@ -31,3 +31,6 @@
 - 2026-05-14: [Anchor PR #1 Plan Refinement](contexts/2026-05-14_anchor-pr1-plan-refinement.md)
 - 2026-05-14: [Anchor PR #1 Task 5/6 QA](contexts/2026-05-14_anchor-pr1-task5-6-qa.md)
 - 2026-05-14: [Anchor PR #1 Comment Resolution Final](contexts/2026-05-14_anchor-pr1-comment-resolution-final.md)
+- 2026-05-14: [Live Voice Regression Fix](contexts/2026-05-14_live-voice-regression-fix.md)
+- 2026-05-17: [PR #2 Live Voice Review Response QA](contexts/2026-05-17_pr2_live_voice_review_response_qa.md)
+- 2026-05-17: [PR #2 Live Voice Review Response](contexts/2026-05-17_pr2_live_voice_review_response.md)

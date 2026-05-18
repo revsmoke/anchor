@@ -1,3 +1,25 @@
+# PR #2 Comment Resolution Plan
+
+> **Execution rule:** keep this branch focused on `codex/live-voice-regression-fix`. Address only PR #2 review feedback unless a test exposes a directly related regression.
+
+## PR #2 Active Review Thread
+
+- [x] Resolve PR #2 metadata and confirm branch `codex/live-voice-regression-fix`.
+- [x] Read flat PR comments through the GitHub connector/CLI and identify actionable feedback.
+- [x] Read thread-aware review state with `gh api graphql` and the bundled `fetch_comments.py` workflow.
+- [x] Add a red regression test proving local voice requests with an SDP offer and `useLiveRealtime: false` do not call `realtimeClient.createCall`.
+- [x] Implement the minimal route fix so only live realtime requests call OpenAI; local SDP offers use the local answer fallback.
+- [x] Run focused API/unit tests.
+- [x] Run QA review and record context history.
+- [x] Commit, push `codex/live-voice-regression-fix`, and re-check PR #2 threads/checks with `gh`.
+- [x] Resolve the PR #2 review thread after push because Bryan explicitly asked to resolve comments.
+
+## Actionable Ledger
+
+| Status | Comment ID | Path | Required Resolution | Evidence |
+|---|---:|---|---|---|
+| addressed locally | `3243775962` | `server/app.js` | Route local voice requests around `realtimeClient.createCall()` when `useLiveRealtime` is false, even if an SDP offer is present. | Added API regression coverage; focused and full API/unit tests pass. |
+
 # PR #1 Comment Resolution Plan
 
 > **Execution rule:** every implementation agent must start by reading this file, then update the relevant checkbox as work proceeds. Keep edits atomic, test-first where behavior changes, and scoped to the files named in each task.
@@ -333,3 +355,13 @@ gh pr view 1 --repo revsmoke/anchor --json reviewDecision,mergeStateStatus,statu
 ## Historical Context
 
 The prior resolution pass already addressed earlier PR comments in commit `93001f2`, including bootstrap behavior, portability cleanup, Playwright port parsing, password-reset helper guards, and initial voice/live cleanup. This current plan supersedes the older checklist and is the only executable checklist for the remaining active PR comments.
+
+## PR #2 QA Review - 2026-05-17
+
+- [x] Confirm PR/comment scope and current working tree without reverting others' edits.
+- [x] Inspect local diff for comment `3243775962` and identify the voice request branch under review.
+- [x] Verify tests or add focused runtime evidence that local voice SDP requests with `useLiveRealtime: false` do not call `realtimeClient.createCall`.
+- [x] Verify live realtime SDP requests still call `realtimeClient.createCall`.
+- [x] Write QA report to `context_history/contexts/2026-05-17_pr2_live_voice_review_response_qa.md`.
+- [x] Add the report to `context_history/context_index.md`.
+- [ ] Re-check changed files and leave GitHub, commits, pushes, and thread resolution untouched.

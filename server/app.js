@@ -30,7 +30,7 @@ import {
   validateVoiceClientSecretPayload,
   validateVoiceEndPayload
 } from "./auth/validation.js";
-import { getPublicConfig, getServerConfig } from "./config.js";
+import { getPublicConfig, getServerConfig, isLiveRealtimeConfigured } from "./config.js";
 import { clearSessionCookie, csrfCookie, readCsrfToken, readSessionToken, sessionCookie } from "./http/cookies.js";
 import { createRequestId, jsonError, jsonOk } from "./http/response.js";
 import { createArtifactStore, redactPacketPayload } from "./services/export-service.js";
@@ -893,6 +893,13 @@ async function handleVoiceClientSecret(db, request, config, realtimeClient) {
     });
   }
 
+  if (validation.value.useLiveRealtime && !isLiveRealtimeConfigured(config)) {
+    return jsonError("voice_realtime_unavailable", "Realtime voice is not configured for this environment.", {
+      status: 503,
+      requestId: createRequestId()
+    });
+  }
+
   const session = {
     type: "realtime",
     model: config.realtimeModel,
@@ -901,16 +908,24 @@ async function handleVoiceClientSecret(db, request, config, realtimeClient) {
       output: { voice: "marin" }
     }
   };
-  const call = validation.value.sdpOffer
-    ? await realtimeClient.createCall({
-      sdpOffer: validation.value.sdpOffer,
-      session,
-      forceNetwork: validation.value.useLiveRealtime
-    })
-    : {
-      sdpAnswer: "v=0\r\no=- 2 2 IN IP4 127.0.0.1\r\ns=Anchor Local Answer\r\n",
-      openAiCallId: "local_realtime_call"
-    };
+  let call;
+  try {
+    call = validation.value.sdpOffer && validation.value.useLiveRealtime
+      ? await realtimeClient.createCall({
+        sdpOffer: validation.value.sdpOffer,
+        session,
+        forceNetwork: validation.value.useLiveRealtime
+      })
+      : {
+        sdpAnswer: "v=0\r\no=- 2 2 IN IP4 127.0.0.1\r\ns=Anchor Local Answer\r\n",
+        openAiCallId: "local_realtime_call"
+      };
+  } catch {
+    return jsonError("voice_realtime_failed", "Realtime voice session could not be started.", {
+      status: 502,
+      requestId: createRequestId()
+    });
+  }
 
   const voiceSession = await db.createVoiceSession(user.id, {
     ...validation.value,
