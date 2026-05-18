@@ -394,6 +394,43 @@ describe("Production hardening: voice", () => {
     expect(JSON.stringify(payload)).not.toContain("invalid_model");
   });
 
+  test("keeps local voice requests off the realtime network when an SDP offer is present", async () => {
+    const calls = [];
+    const realtimeClient = {
+      async createCall(input) {
+        calls.push(input);
+        throw new Error("createCall should not be used for local realtime sessions");
+      },
+      async hangup() {
+        return true;
+      }
+    };
+    const { app, cookie } = await signedInConsentedApp({
+      realtimeClient,
+      config: {
+        appEnv: "production",
+        openaiApiKey: "replace-me",
+        realtimeModel: "replace-me",
+        textModel: "gpt-4.1-mini",
+        traceRetentionDays: 30
+      }
+    });
+
+    const response = await app.fetch(jsonRequest("/api/voice/client-secret", {
+      mode: "skill",
+      doNotSave: true,
+      contextRefs: {},
+      useLiveRealtime: false,
+      sdpOffer: "v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=Anchor Offer\r\n"
+    }, "POST", { cookie }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(payload.data.sdpAnswer).toContain("Anchor Local Answer");
+    expect(payload.data.openAiCallId).toBe("local_realtime_call");
+    expect(calls).toHaveLength(0);
+  });
+
   test("creates server-mediated WebRTC session and hangs up by OpenAI call id", async () => {
     const calls = [];
     const hangups = [];
@@ -425,6 +462,7 @@ describe("Production hardening: voice", () => {
       mode: "skill",
       doNotSave: true,
       contextRefs: {},
+      useLiveRealtime: true,
       sdpOffer: "v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=Anchor Offer\r\n"
     }, "POST", { cookie }));
     const payload = await response.json();

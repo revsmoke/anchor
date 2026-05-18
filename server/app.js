@@ -910,7 +910,7 @@ async function handleVoiceClientSecret(db, request, config, realtimeClient) {
   };
   let call;
   try {
-    call = validation.value.sdpOffer
+    call = validation.value.sdpOffer && validation.value.useLiveRealtime
       ? await realtimeClient.createCall({
         sdpOffer: validation.value.sdpOffer,
         session,
