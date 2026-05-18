@@ -11,8 +11,8 @@
 - [x] Implement the minimal route fix so only live realtime requests call OpenAI; local SDP offers use the local answer fallback.
 - [x] Run focused API/unit tests.
 - [x] Run QA review and record context history.
-- [ ] Commit, push `codex/live-voice-regression-fix`, and re-check PR #2 threads/checks with `gh`.
-- [ ] Resolve the PR #2 review thread after push because Bryan explicitly asked to resolve comments.
+- [x] Commit, push `codex/live-voice-regression-fix`, and re-check PR #2 threads/checks with `gh`.
+- [x] Resolve the PR #2 review thread after push because Bryan explicitly asked to resolve comments.
 
 ## Actionable Ledger
 
